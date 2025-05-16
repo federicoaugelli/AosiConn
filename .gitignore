@@ -1,0 +1,4 @@
+core/train/
+core/app/threads/
+.env
+core/app/testdb.py

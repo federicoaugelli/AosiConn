@@ -1,0 +1,45 @@
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Float
+from sqlalchemy.orm import relationship
+
+from .database import Base
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    username = Column(String, unique=True, index=True)
+    password = Column(String)
+
+    trades = relationship("Trades", back_populates="owner")
+    keys = relationship("Keys", back_populates="owner")
+
+
+class Trades(Base):
+    __tablename__ = "trades"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    pair = Column(String, index=True)
+    qty = Column(Integer)
+    leverage = Column(Integer)
+    action = Column(Integer)
+    result = Column(Integer)
+    strategy = Column(String)
+    entry = Column(Float)
+    profit = Column(Float)
+    loss = Column(Float)
+
+    owner = relationship("User", back_populates="trades")
+
+
+class Keys(Base):
+    __tablename__ = "keys"
+
+    id = Column(Integer, primary_key=True, index=True)
+    exchange = Column(String, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    api_key = Column(String)
+    api_secret = Column(String)
+
+    owner = relationship("User", back_populates="keys")

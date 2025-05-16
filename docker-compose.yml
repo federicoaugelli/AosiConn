@@ -1,0 +1,13 @@
+version: '3'
+services:
+  app:
+    build:
+      context: ./core
+      dockerfile: Dockerfile
+    restart: on-failure
+    ports:
+      - 8000:8000
+    volumes:
+      - ./core/app/db/aosicoa.db:/app/db/aosicoa.db
+    env_file:
+      - .env

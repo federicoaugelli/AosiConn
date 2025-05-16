@@ -1,0 +1,64 @@
+from sqlalchemy.orm import Session
+from . import models, schemas
+
+# user CRUD
+def get_user(db: Session, username: str):
+    return db.query(models.User).filter(models.User.username == username).first()
+
+def create_user(db: Session, user: schemas.UserCreate):
+    db_user = models.User(name=user.name, username=user.username, password=user.password)
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+# key CRUD
+def get_key(db: Session, user_id: int, exchange: str):
+    return db.query(models.Keys).filter(models.Keys.user_id == user_id, models.Keys.exchange == exchange).first()
+
+
+def get_keys(db: Session, user_id: int):
+    return db.query(models.Keys).filter(models.Keys.user_id == user_id).all()
+
+
+def modify_key(db: Session, user_id: int, exchange: str, api_key: str, api_secret: str):
+    key = db.query(models.Keys).filter(models.Keys.user_id == user_id, models.Keys.exchange == exchange).first()
+    key.api_key = api_key
+    key.api_secret = api_secret
+    db.commit()
+    db.refresh(key)
+    return key
+
+
+def create_key(db: Session, key: schemas.KeyBase, user_id):
+    db_key = models.Keys(exchange=key.exchange, user_id=user_id, api_key=key.api_key, api_secret=key.api_secret)
+    db.add(db_key)
+    db.commit()
+    db.refresh(db_key)
+    return db_key
+
+
+def delete_key(db: Session, user_id: int, exchange: str):
+    key = db.query(models.Keys).filter(models.Keys.user_id == user_id, models.Keys.exchange == exchange).first()
+    db.delete(key)
+    db.commit()
+    return key
+
+# trade CRUD
+def get_all_trade(db: Session, user_id: int):
+    return db.query(models.Trade).filter(models.Trade.user_id == user_id).all()
+
+def get_trade_by_pair(db: Session, user_id: int, pair: str):
+    return db.query(models.Trade).filter(models.Trade.user_id == user_id, models.Trade.pair == pair).all()
+
+
+def create_trade(db: Session, trade: schemas.Trade):
+    add_trade = models.Trade(user_id = trade.user_id, pair = trade.pair, qty = trade.qty, leverage = trade.leverage, action = trade.action, result = trade.result, strategy = trade.strategy, entry = trade.entry, profit = trade.profit, loss = trade.loss)
+    db.add(add_trade)
+    db.commit()
+    db.refresh(add_trade)
+    return add_trade
+
+# create all statics for trades
+
+
