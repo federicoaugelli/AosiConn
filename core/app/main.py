@@ -8,7 +8,7 @@ from fastapi.routing import APIRoute
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-from routes import base, auth, exchange, api, thread, openapi, statistics
+from routes import base, auth, exchange, api, thread, openapi, statistics, dashboard
 from aosicoaLogger.log import log
 
 from utils.scheduler_utils import scheduler
@@ -41,6 +41,7 @@ app.add_middleware(
 )
 
 app.include_router(base.router, tags=["Status"])
+app.include_router(dashboard.router, tags=["Dashboard"], prefix="/dashboard")
 app.include_router(auth.router, tags=["Auth"], prefix="/auth")
 app.include_router(api.router, tags=["Api Keys"], prefix="/key")
 app.include_router(thread.router, tags=["Thread"], prefix="/thread")
