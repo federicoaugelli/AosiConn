@@ -4,6 +4,7 @@
 
 ## Training RL-01
 ### First Iteration
+```
 Epoch 1 Summary:
   Avg Policy Loss: 0.0332
   Avg Value Loss: 0.8794
@@ -63,3 +64,4 @@ Epoch 10 Summary:
   Avg Value Loss: 0.8581
   Avg S-C: 19.1203
   Avg Total Loss: 0.4292
+```
