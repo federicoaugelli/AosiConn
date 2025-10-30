@@ -10,13 +10,14 @@ models.Base.metadata.create_all(bind=engine)
 db = SessionLocal()
 
 class common_template(threading.Thread):
-    def __init__(self, user_id, pair, exchange, qty, leverage, message):
+    def __init__(self, thread_id, user_id, pair, exchange, qty, leverage, message):
         threading.Thread.__init__(self)
         self.kill_it = False
         self.lock = threading.Lock()
         self.timestamp = datetime.now()
         self.timedelta = 600 # seconds
         self.strategy_name = ''
+        self.thread_id = thread_id
         self.user_id = user_id
         self.pair = pair
         self.exchange = exchange
@@ -136,8 +137,13 @@ class common_template(threading.Thread):
         print("thread stopping...")
         self.stop_event.set()
 
+    def heartbeat(self):
+        crud.update_thread_heartbeat(db, self.thread_id)
+
     def run(self):
         # This will be implemented in the specific strategy classes
-        pass
+        while not self.stop_event.is_set():
+            self.heartbeat()
+            self.stop_event.wait(60) # send heartbeat every 60 seconds
 
 

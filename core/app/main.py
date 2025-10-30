@@ -12,12 +12,28 @@ from routes import base, auth, exchange, api, thread, openapi, statistics, dashb
 from aosicoaLogger.log import log
 
 from utils.scheduler_utils import scheduler
+from db import crud
+from db.database import SessionLocal, engine
+from routes.thread import threads, thread_lock
+import importlib
 
 from v4_client_py import IndexerClient
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     log.welcome()
-    # TODO start the strategies from database
+
+    db = SessionLocal()
+    db_threads = crud.get_all_threads(db)
+    for db_thread in db_threads:
+        if db_thread.status == "running":
+            module_name = f"threads.{db_thread.strategy}.main"
+            strategy_module = importlib.import_module(module_name)
+            strategy_instance = getattr(strategy_module, 'strategy')
+
+            thread = strategy_instance(db_thread.id, db_thread.user_id, db_thread.pair, "bitmex", db_thread.qty, db_thread.leverage, "")
+            with thread_lock:
+                threads.append(thread)
+            thread.start()
 
     scheduler.start()
 
