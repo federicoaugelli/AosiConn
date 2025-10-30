@@ -2,4 +2,6 @@ core/train/
 core/app/threads/
 .env
 core/app/testdb.py
+core/app/.DS_Store
+core/app/exchange/.DS_Store
 .DS_Store
