@@ -47,11 +47,16 @@ class User(UserBase):
     class Config:
         orm_mode = True
 
-'''
-class workingThreads(BaseModel):
+class Thread(BaseModel):
     id: int
-    name: str
-    thread_id: int
+    user_id: int
+    pair: str
+    qty: int
+    leverage: int
+    strategy: str
     status: str
-'''
+    last_heartbeat: int
+
+    class Config:
+        orm_mode = True
 

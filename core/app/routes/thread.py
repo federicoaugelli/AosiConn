@@ -6,6 +6,9 @@ from auth.auth_bearer import JWTBearer
 from utils.router_utils import *
 from utils.scheduler_utils import scheduler
 from datetime import datetime, timedelta
+from db import crud, schemas
+from db.database import SessionLocal, engine, get_db
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
@@ -17,12 +20,20 @@ thread_lock = threading.Lock()
 
 @scheduler.scheduled_job('interval', seconds=60)
 def health_check():
-    for thread in threads:
-        _timestamp = datetime.now()
-        if _timestamp - thread.timestamp > timedelta(seconds=thread.timedelta) or thread.kill_it == True:
-            print(f"delta: {_timestamp - thread.timestamp}, timedelta: {thread.timedelta}")
-            thread.stop()
-            threads.remove(thread)
+    db = SessionLocal()
+    try:
+        db_threads = crud.get_all_threads(db)
+        for db_thread in db_threads:
+            if db_thread.status == "running":
+                now = int(datetime.now().timestamp())
+                if now - db_thread.last_heartbeat > 600: # 10 minutes
+                    crud.update_thread_status(db, db_thread.id, "dead")
+                    thread = next((t for t in threads if t.thread_id == db_thread.id), None)
+                    if thread is not None:
+                        thread.stop()
+                        threads.remove(thread)
+    finally:
+        db.close()
 
 
 @router.get("/")
@@ -107,51 +118,46 @@ async def delete_threads(thread_name: str, user_id: str = Depends(JWTBearer()), 
         "Thread": "Deleted"
     }
 
-# TODO if thread dies it still shows up in the list
 @router.get("/instance")
-async def get_all_working_threads(thread_id: int | None = None, user_id: str = Depends(JWTBearer()), dependencies=Depends(JWTBearer())) -> Dict:
+async def get_all_working_threads(
+    thread_id: int | None = None,
+    user_id: str = Depends(JWTBearer()),
+    db: Session = Depends(get_db),
+) -> Dict:
     uid = get_user_id(user_id)
     try:
-        if thread_id == None:
-            with thread_lock:
-                threads_list = [{'thread_id': id(t), 'action': t.last_action, 'pair': t.pair, 'exchange': t.exchange, 'qty': t.qty, 'leverage': t.leverage, 'message': t.message} for t in threads if t.user_id == uid]
-                
-                return {
-                    'thread': threads_list
-                }
+        if thread_id is None:
+            db_threads = crud.get_threads(db, uid)
+            return {"threads": db_threads}
         else:
-            t = next((t for t in threads if id(t) == thread_id and t.user_id == uid), None)
-    
-            if t == None:
+            db_thread = crud.get_thread(db, thread_id)
+            if db_thread is None or db_thread.user_id != uid:
                 raise HTTPException(status_code=404, detail="Thread not found")
-
-            thread = {'thread_id': id(t), 'action': t.last_action, 'pair': t.pair, 'exchange': t.exchange, 'qty': t.qty, 'leverage': t.leverage, 'message': t.message}
-            
-            if t.kill_it == True:
-                threads.remove(t)
-                raise HTTPException(status_code=404, detail="Thread not found")
-
-            return {
-                'thread': thread
-            }
-
+            return {"thread": db_thread}
     except Exception as e:
         return {"error": str(e)}
 
 @router.post("/instance")
-async def create_working_thread(body: thread_schema.insert_strategy, user_id: str = Depends(JWTBearer()), dependencies=Depends(JWTBearer())) -> Dict:
+async def create_working_thread(
+    body: thread_schema.insert_strategy,
+    user_id: str = Depends(JWTBearer()),
+    db: Session = Depends(get_db),
+) -> Dict:
     user_id = get_user_id(user_id)
     try:
-        #init = globals().get(body.strategy)
         module_name = f"threads.{body.strategy}.main"
         strategy_module = importlib.import_module(module_name)
         strategy_instance = getattr(strategy_module, 'strategy')
-        thread = strategy_instance(user_id,  body.pair, body.exchange, body.qty, body.leverage, body.message)
+
+        db_thread = crud.create_thread(db, user_id, body.pair, body.qty, body.leverage, body.strategy)
+
+        thread = strategy_instance(db_thread.id, user_id,  body.pair, body.exchange, body.qty, body.leverage, body.message)
         with thread_lock:
             threads.append(thread)
         thread.start()
+
         return {
-            "thread id: ": id(thread)
+            "thread id: ": db_thread.id
         }
     
     except ModuleNotFoundError as e:
@@ -161,14 +167,29 @@ async def create_working_thread(body: thread_schema.insert_strategy, user_id: st
         return {"error": str(e)}
 
 @router.put("/instance")
-async def update_working_thread(body: thread_schema.update_strategy, user_id: str = Depends(JWTBearer()), dependencies=Depends(JWTBearer())) -> Dict:
+async def update_working_thread(
+    body: thread_schema.update_strategy,
+    user_id: str = Depends(JWTBearer()),
+    db: Session = Depends(get_db),
+) -> Dict:
     uid = get_user_id(user_id)
     try:
-        thread = next((t for t in threads if id(t) == body.thread_id and t.user_id == uid), None)
-        if thread == None:
+        db_thread = crud.get_thread(db, body.thread_id)
+        if db_thread is None or db_thread.user_id != uid:
             raise HTTPException(status_code=404, detail="Thread not found")
-        else:
-            thread.update(body.pair, body.exchange, body.qty, body.leverage, body.message)
+
+        thread = next((t for t in threads if t.thread_id == body.thread_id and t.user_id == uid), None)
+        if thread is None:
+            raise HTTPException(status_code=404, detail="Thread not running")
+
+        update_data = body.dict(exclude_unset=True)
+        for key, value in update_data.items():
+            setattr(db_thread, key, value)
+
+        crud.update_thread(db, db_thread)
+
+        thread.update(body.pair, body.exchange, body.qty, body.leverage, body.message)
+
         return {
             "thread": "updated"
         }
@@ -176,16 +197,27 @@ async def update_working_thread(body: thread_schema.update_strategy, user_id: st
         return {"error": str(e)}
 
 @router.delete("/instance")
-async def delete_working_thread(thread_id: int, user_id: str = Depends(JWTBearer()), dependencies=Depends(JWTBearer())) -> Dict:
+async def delete_working_thread(
+    thread_id: int,
+    user_id: str = Depends(JWTBearer()),
+    db: Session = Depends(get_db),
+) -> Dict:
     uid = get_user_id(user_id)
     try:
-        thread = next((t for t in threads if id(t) == thread_id and t.user_id == uid), None)
-        if thread.last_action != 0:
-            raise HTTPException(status_code=401, detail="there are opened position for this strategy")
-        else:
-            thread.stop()
-            #thread.join()
-            threads.remove(thread)
+        db_thread = crud.get_thread(db, thread_id)
+        if db_thread is None or db_thread.user_id != uid:
+            raise HTTPException(status_code=404, detail="Thread not found")
+
+        thread = next((t for t in threads if t.thread_id == thread_id and t.user_id == uid), None)
+        if thread is not None:
+            if thread.last_action != 0:
+                raise HTTPException(status_code=401, detail="there are opened position for this strategy")
+            else:
+                thread.stop()
+                threads.remove(thread)
+
+        crud.delete_thread(db, thread_id)
+
         return {
             "thread": "deleted"
         }

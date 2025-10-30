@@ -43,3 +43,18 @@ class Keys(Base):
     api_secret = Column(String)
 
     owner = relationship("User", back_populates="keys")
+
+
+class Threads(Base):
+    __tablename__ = "threads"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    pair = Column(String, index=True)
+    qty = Column(Integer)
+    leverage = Column(Integer)
+    strategy = Column(String)
+    status = Column(String)
+    last_heartbeat = Column(Integer)
+
+    owner = relationship("User")

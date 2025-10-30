@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from . import models, schemas
+from datetime import datetime
 
 # user CRUD
 def get_user(db: Session, username: str):
@@ -59,6 +60,61 @@ def create_trade(db: Session, trade: schemas.Trade):
     db.refresh(add_trade)
     return add_trade
 
-# create all statics for trades
+# thread CRUD
+def create_thread(db: Session, user_id: int, pair: str, qty: int, leverage: int, strategy: str):
+    db_thread = models.Threads(
+        user_id=user_id,
+        pair=pair,
+        qty=qty,
+        leverage=leverage,
+        strategy=strategy,
+        status="running",
+        last_heartbeat=int(datetime.now().timestamp()),
+    )
+    db.add(db_thread)
+    db.commit()
+    db.refresh(db_thread)
+    return db_thread
+
+
+def get_thread(db: Session, thread_id: int):
+    return db.query(models.Threads).filter(models.Threads.id == thread_id).first()
+
+
+def get_threads(db: Session, user_id: int):
+    return db.query(models.Threads).filter(models.Threads.user_id == user_id).all()
+
+
+def get_all_threads(db: Session):
+    return db.query(models.Threads).all()
+
+
+def update_thread(db: Session, thread: schemas.Thread):
+    db.commit()
+    db.refresh(thread)
+    return thread
+
+
+def update_thread_status(db: Session, thread_id: int, status: str):
+    thread = db.query(models.Threads).filter(models.Threads.id == thread_id).first()
+    thread.status = status
+    db.commit()
+    db.refresh(thread)
+    return thread
+
+
+def update_thread_heartbeat(db: Session, thread_id: int):
+    thread = db.query(models.Threads).filter(models.Threads.id == thread_id).first()
+    thread.last_heartbeat = int(datetime.now().timestamp())
+    db.commit()
+    db.refresh(thread)
+    return thread
+
+
+def delete_thread(db: Session, thread_id: int):
+    thread = db.query(models.Threads).filter(models.Threads.id == thread_id).first()
+    db.delete(thread)
+    db.commit()
+    return thread
 
 
