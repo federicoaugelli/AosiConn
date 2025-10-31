@@ -12,3 +12,8 @@ pyproject.toml
 *.pyc
 *.db
 *.log
+uv.lock
+*_old.txt
+__pycache__
+core/app/db/aosiconn.db
+core/app/logger/logfile.log

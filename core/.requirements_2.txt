@@ -1,4 +1,0 @@
-protobuf==5.28.1
-v4-proto<7.0.5
-v4_client_py==4.0.0
-
