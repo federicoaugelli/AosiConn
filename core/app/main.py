@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from routes import base, auth, exchange, api, thread, openapi, statistics, dashboard
-from aosicoaLogger.log import log
+from logger.log import log
 
 from utils.scheduler_utils import scheduler
 from db import crud
@@ -17,7 +17,8 @@ from db.database import SessionLocal, engine
 from routes.thread import threads, thread_lock
 import importlib
 
-from v4_client_py import IndexerClient
+#from v4_client_py import IndexerClient
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     log.welcome()

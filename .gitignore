@@ -5,3 +5,10 @@ core/app/testdb.py
 core/app/.DS_Store
 core/app/exchange/.DS_Store
 .DS_Store
+.python-version
+*.toml
+pyproject.toml
+.venv
+*.pyc
+*.db
+*.log
