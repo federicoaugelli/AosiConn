@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Trading Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            background: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .card h3 {
+            margin-top: 0;
+            color: #555;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #333;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #555;
+        }
+        button.secondary {
+            background: #6c757d;
+        }
+        button.danger {
+            background: #dc3545;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #666;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .pre {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow: auto;
+        }
+        .tab-container {
+            margin-bottom: 20px;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-bottom: none;
+            margin-right: 5px;
+            border-radius: 4px 4px 0 0;
+        }
+        .tab.active {
+            background: white;
+            border-color: #ddd;
+            border-bottom-color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Trading Dashboard</h1>
+            <button onclick="logout()" class="secondary">Logout</button>
+        </div>
+
+        <div class="tab-container">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('overview')">Overview</div>
+                <div class="tab" onclick="switchTab('keys')">API Keys</div>
+                <div class="tab" onclick="switchTab('threads')">Threads</div>
+                <div class="tab" onclick="switchTab('strategies')">Strategies</div>
+            </div>
+
+            <!-- Overview Tab -->
+            <div id="overview" class="tab-content active">
+                <div class="grid">
+                    <div class="card">
+                        <h3>User Info</h3>
+                        <div id="user-data" class="pre">Loading...</div>
+                    </div>
+                    <div class="card">
+                        <h3>Available Exchanges</h3>
+                        <div id="exchanges-data" class="pre">Loading...</div>
+                    </div>
+                </div>
+                <div class="grid">
+                    <div class="card">
+                        <h3>Balance</h3>
+                        <div class="form-group">
+                            <label>Exchange</label>
+                            <select id="balance-exchange">
+                                <option value="">Select exchange</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Currency</label>
+                            <input type="text" id="balance-currency" placeholder="e.g., USDT">
+                        </div>
+                        <button onclick="getBalance()">Get Balance</button>
+                        <div id="balance-data" class="pre" style="margin-top: 15px;"></div>
+                    </div>
+                    <div class="card">
+                        <h3>Quote</h3>
+                        <div class="form-group">
+                            <label>Exchange</label>
+                            <select id="quote-exchange">
+                                <option value="">Select exchange</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Pair</label>
+                            <input type="text" id="quote-pair" placeholder="e.g., BTC/USDT">
+                        </div>
+                        <div class="form-group">
+                            <label>Size</label>
+                            <input type="text" id="quote-size" placeholder="e.g., 0.001">
+                        </div>
+                        <div class="form-group">
+                            <label>Count</label>
+                            <input type="number" id="quote-count" value="1">
+                        </div>
+                        <button onclick="getQuote()">Get Quote</button>
+                        <div id="quote-data" class="pre" style="margin-top: 15px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Keys Tab -->
+            <div id="keys" class="tab-content">
+                <div class="card">
+                    <h3>Manage API Keys</h3>
+                    <div class="form-group">
+                        <label>Exchange</label>
+                        <input type="text" id="key-exchange" placeholder="e.g., binance">
+                    </div>
+                    <div class="form-group">
+                        <label>API Key</label>
+                        <input type="text" id="api-key" placeholder="Your API key">
+                    </div>
+                    <div class="form-group">
+                        <label>API Secret</label>
+                        <input type="password" id="api-secret" placeholder="Your API secret">
+                    </div>
+                    <button onclick="createKey()">Create Key</button>
+                    <button onclick="updateKey()" class="secondary">Update Key</button>
+                    <button onclick="deleteKey()" class="danger">Delete Key</button>
+                </div>
+                <div class="card">
+                    <h3>Your API Keys</h3>
+                    <div id="keys-data" class="pre">Loading...</div>
+                </div>
+            </div>
+
+            <!-- Threads Tab -->
+            <div id="threads" class="tab-content">
+                <div class="card">
+                    <h3>Upload Strategy File</h3>
+                    <input type="file" id="strategy-file">
+                    <button onclick="uploadThread()">Upload</button>
+                </div>
+                <div class="card">
+                    <h3>Available Threads</h3>
+                    <div id="threads-data" class="pre">Loading...</div>
+                </div>
+            </div>
+
+            <!-- Strategies Tab -->
+            <div id="strategies" class="tab-content">
+                <div class="card">
+                    <h3>Create Working Thread</h3>
+                    <div class="form-group">
+                        <label>Strategy</label>
+                        <input type="text" id="strategy-name" placeholder="Strategy name">
+                    </div>
+                    <div class="form-group">
+                        <label>Pair</label>
+                        <input type="text" id="strategy-pair" placeholder="e.g., BTC/USDT">
+                    </div>
+                    <div class="form-group">
+                        <label>Exchange</label>
+                        <input type="text" id="strategy-exchange" placeholder="e.g., binance">
+                    </div>
+                    <div class="form-group">
+                        <label>Quantity</label>
+                        <input type="number" id="strategy-qty" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Leverage</label>
+                        <input type="number" id="strategy-leverage" value="1">
+                    </div>
+                    <button onclick="createStrategy()">Create Strategy</button>
+                </div>
+                <div class="card">
+                    <h3>Active Strategies</h3>
+                    <div id="strategies-data" class="pre">Loading...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/dashboard/login';
+        /*async function checkAuth() {
+            try {
+                const response = await fetch('/auth/user', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.status === 403 || response.status === 401) {
+                    localStorage.removeItem('token');
+                    window.location.href = '/dashboard/login';
+                }
+            }
+
+            catch (error) {
+                console.error('Auth check failed:', error)
+                localStorage.removeItem('token);
+                window.location.href = '/dashboard/login';
+            }
+        }
+        checkAuth();*/
+
+        async function apiCall(endpoint, options = {}) {
+            try {
+                const response = await fetch(endpoint, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+                
+                if (response.status === 401) {
+                    logout();
+                    return null;
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('API call failed:', error);
+                return { error: error.message };
+            }
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        async function loadOverview() {
+            const [user, exchanges] = await Promise.all([
+                apiCall('/auth/user'),
+                apiCall('/exchange/list/')
+            ]);
+            
+            document.getElementById('user-data').textContent = JSON.stringify(user, null, 2);
+            document.getElementById('exchanges-data').textContent = (exchanges.exchanges || []).join(', ');
+            
+            // Populate exchange dropdowns
+            const exchangesList = exchanges.exchanges || [];
+            const exchangeSelects = document.querySelectorAll('select[id$="exchange"]');
+            exchangeSelects.forEach(select => {
+                select.innerHTML = '<option value="">Select exchange</option>' +
+                    exchangesList.map(ex => `<option value="${ex}">${ex}</option>`).join('');
+            });
+        }
+
+        async function loadKeys() {
+            const keys = await apiCall('/key/');
+            document.getElementById('keys-data').textContent = JSON.stringify(keys, null, 2);
+        }
+
+        async function loadThreads() {
+            const threads = await apiCall('/thread/');
+            document.getElementById('threads-data').textContent = JSON.stringify(threads, null, 2);
+        }
+
+        async function loadStrategies() {
+            const strategies = await apiCall('/thread/instance');
+            document.getElementById('strategies-data').textContent = JSON.stringify(strategies, null, 2);
+        }
+
+        async function createKey() {
+            const keyData = {
+                exchange: document.getElementById('key-exchange').value,
+                api_key: document.getElementById('api-key').value,
+                api_secret: document.getElementById('api-secret').value
+            };
+            
+            await apiCall('/key/', {
+                method: 'POST',
+                body: JSON.stringify(keyData)
+            });
+            
+            loadKeys();
+        }
+
+        async function updateKey() {
+            const keyData = {
+                exchange: document.getElementById('key-exchange').value,
+                api_key: document.getElementById('api-key').value,
+                api_secret: document.getElementById('api-secret').value
+            };
+            
+            await apiCall('/key/', {
+                method: 'PUT',
+                body: JSON.stringify(keyData)
+            });
+            
+            loadKeys();
+        }
+
+        async function deleteKey() {
+            const exchange = document.getElementById('key-exchange').value;
+            await apiCall(`/key/?exchange=${exchange}`, { method: 'DELETE' });
+            loadKeys();
+        }
+
+        async function uploadThread() {
+            const fileInput = document.getElementById('strategy-file');
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            
+            await fetch('/thread/upload/', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+            
+            loadThreads();
+        }
+
+        async function createStrategy() {
+            const strategyData = {
+                strategy: document.getElementById('strategy-name').value,
+                pair: document.getElementById('strategy-pair').value,
+                exchange: document.getElementById('strategy-exchange').value,
+                qty: parseInt(document.getElementById('strategy-qty').value),
+                leverage: parseInt(document.getElementById('strategy-leverage').value)
+            };
+            
+            await apiCall('/thread/instance', {
+                method: 'POST',
+                body: JSON.stringify(strategyData)
+            });
+            
+            loadStrategies();
+        }
+
+        function getBalance() {
+            document.getElementById('balance-data').textContent = 'Feature not yet implemented';
+        }
+
+        function getQuote() {
+            document.getElementById('quote-data').textContent = 'Feature not yet implemented';
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/dashboard/login';
+        }
+
+        // Initial load
+        loadOverview();
+        loadKeys();
+        loadThreads();
+        loadStrategies();
+    </script>
+</body>
+</html>

@@ -13,6 +13,7 @@ class User(Base):
 
     trades = relationship("Trades", back_populates="owner")
     keys = relationship("Keys", back_populates="owner")
+    threads = relationship("Threads", back_populates="owner")
 
 
 class Trades(Base):
@@ -52,9 +53,11 @@ class Threads(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     pair = Column(String, index=True)
     qty = Column(Integer)
+    exchange = Column(String)
     leverage = Column(Integer)
     strategy = Column(String)
+    message = Column(String)
     status = Column(String)
     last_heartbeat = Column(Integer)
 
-    owner = relationship("User")
+    owner = relationship("User", back_populates="threads")

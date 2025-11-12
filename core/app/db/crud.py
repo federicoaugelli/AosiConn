@@ -13,14 +13,13 @@ def create_user(db: Session, user: schemas.UserCreate):
     db.refresh(db_user)
     return db_user
 
+
 # key CRUD
 def get_key(db: Session, user_id: int, exchange: str):
     return db.query(models.Keys).filter(models.Keys.user_id == user_id, models.Keys.exchange == exchange).first()
 
-
 def get_keys(db: Session, user_id: int):
     return db.query(models.Keys).filter(models.Keys.user_id == user_id).all()
-
 
 def modify_key(db: Session, user_id: int, exchange: str, api_key: str, api_secret: str):
     key = db.query(models.Keys).filter(models.Keys.user_id == user_id, models.Keys.exchange == exchange).first()
@@ -30,7 +29,6 @@ def modify_key(db: Session, user_id: int, exchange: str, api_key: str, api_secre
     db.refresh(key)
     return key
 
-
 def create_key(db: Session, key: schemas.KeyBase, user_id):
     db_key = models.Keys(exchange=key.exchange, user_id=user_id, api_key=key.api_key, api_secret=key.api_secret)
     db.add(db_key)
@@ -38,12 +36,12 @@ def create_key(db: Session, key: schemas.KeyBase, user_id):
     db.refresh(db_key)
     return db_key
 
-
 def delete_key(db: Session, user_id: int, exchange: str):
     key = db.query(models.Keys).filter(models.Keys.user_id == user_id, models.Keys.exchange == exchange).first()
     db.delete(key)
     db.commit()
     return key
+
 
 # trade CRUD
 def get_all_trade(db: Session, user_id: int):
@@ -52,7 +50,6 @@ def get_all_trade(db: Session, user_id: int):
 def get_trade_by_pair(db: Session, user_id: int, pair: str):
     return db.query(models.Trade).filter(models.Trade.user_id == user_id, models.Trade.pair == pair).all()
 
-
 def create_trade(db: Session, trade: schemas.Trade):
     add_trade = models.Trade(user_id = trade.user_id, pair = trade.pair, qty = trade.qty, leverage = trade.leverage, action = trade.action, result = trade.result, strategy = trade.strategy, entry = trade.entry, profit = trade.profit, loss = trade.loss)
     db.add(add_trade)
@@ -60,13 +57,16 @@ def create_trade(db: Session, trade: schemas.Trade):
     db.refresh(add_trade)
     return add_trade
 
+
 # thread CRUD
-def create_thread(db: Session, user_id: int, pair: str, qty: int, leverage: int, strategy: str):
+def create_thread(db: Session, user_id: int, pair: str, exchange: str, qty: int, leverage: int, message: str, strategy: str):
     db_thread = models.Threads(
         user_id=user_id,
         pair=pair,
+        exchange=exchange,
         qty=qty,
         leverage=leverage,
+        message=message,
         strategy=strategy,
         status="running",
         last_heartbeat=int(datetime.now().timestamp()),
@@ -76,24 +76,19 @@ def create_thread(db: Session, user_id: int, pair: str, qty: int, leverage: int,
     db.refresh(db_thread)
     return db_thread
 
-
 def get_thread(db: Session, thread_id: int):
     return db.query(models.Threads).filter(models.Threads.id == thread_id).first()
-
 
 def get_threads(db: Session, user_id: int):
     return db.query(models.Threads).filter(models.Threads.user_id == user_id).all()
 
-
 def get_all_threads(db: Session):
     return db.query(models.Threads).all()
-
 
 def update_thread(db: Session, thread: schemas.Thread):
     db.commit()
     db.refresh(thread)
     return thread
-
 
 def update_thread_status(db: Session, thread_id: int, status: str):
     thread = db.query(models.Threads).filter(models.Threads.id == thread_id).first()

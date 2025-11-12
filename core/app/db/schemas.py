@@ -6,7 +6,7 @@ class KeyBase(BaseModel):
     api_secret: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class KeyCreate(KeyBase):
     pass
@@ -28,7 +28,7 @@ class Trade(TradeBase):
     loss: float
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 
@@ -45,7 +45,7 @@ class User(UserBase):
     trades: list[Trade] = []
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class Thread(BaseModel):
     id: int
@@ -58,5 +58,5 @@ class Thread(BaseModel):
     last_heartbeat: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 

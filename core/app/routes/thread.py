@@ -5,6 +5,7 @@ from schemas import threads as thread_schema
 from auth.auth_bearer import JWTBearer
 from utils.router_utils import *
 from utils.scheduler_utils import scheduler
+from utils.scheduler_manager import scheduler_manager
 from datetime import datetime, timedelta
 from db import crud, schemas
 from db.database import SessionLocal, engine, get_db
@@ -13,27 +14,6 @@ from sqlalchemy.orm import Session
 router = APIRouter()
 
 thread_folder = "threads"
-# TODO replace this with a database
-threads = []
-thread_lock = threading.Lock()
-
-
-@scheduler.scheduled_job('interval', seconds=60)
-def health_check():
-    db = SessionLocal()
-    try:
-        db_threads = crud.get_all_threads(db)
-        for db_thread in db_threads:
-            if db_thread.status == "running":
-                now = int(datetime.now().timestamp())
-                if now - db_thread.last_heartbeat > 600: # 10 minutes
-                    crud.update_thread_status(db, db_thread.id, "dead")
-                    thread = next((t for t in threads if t.thread_id == db_thread.id), None)
-                    if thread is not None:
-                        thread.stop()
-                        threads.remove(thread)
-    finally:
-        db.close()
 
 
 @router.get("/")
@@ -123,17 +103,17 @@ async def get_all_working_threads(
     thread_id: int | None = None,
     user_id: str = Depends(JWTBearer()),
     db: Session = Depends(get_db),
-) -> Dict:
+):
     uid = get_user_id(user_id)
     try:
         if thread_id is None:
             db_threads = crud.get_threads(db, uid)
-            return {"threads": db_threads}
+            return db_threads
         else:
             db_thread = crud.get_thread(db, thread_id)
             if db_thread is None or db_thread.user_id != uid:
                 raise HTTPException(status_code=404, detail="Thread not found")
-            return {"thread": db_thread}
+            return db_thread
     except Exception as e:
         return {"error": str(e)}
 
@@ -147,25 +127,25 @@ async def create_working_thread(
     try:
         module_name = f"threads.{body.strategy}.main"
         strategy_module = importlib.import_module(module_name)
-        strategy_instance = getattr(strategy_module, 'strategy')
+        strategy_class = getattr(strategy_module, 'Strategy')
 
-        db_thread = crud.create_thread(db, user_id, body.pair, body.qty, body.leverage, body.strategy)
+        db_thread = crud.create_thread(db, user_id, body.pair, body.exchange, body.qty, body.leverage, body.message, body.strategy)
 
-        thread = strategy_instance(db_thread.id, user_id,  body.pair, body.exchange, body.qty, body.leverage, body.message)
-        with thread_lock:
-            threads.append(thread)
-        thread.start()
+        strategy_instance = strategy_class(db_thread.id, user_id, body.pair, body.exchange, body.qty, body.leverage, body.message)
+
+        scheduler_manager.add_strategy(db_thread, strategy_instance)
 
         return {
             "thread id: ": db_thread.id
         }
     
     except ModuleNotFoundError as e:
-        raise HTTPException(status_code=404, detail="Module not found")
+        raise HTTPException(status_code=404, detail=f"Module not found, {e}")
 
     except Exception as e:
         return {"error": str(e)}
 
+# TODO finish - now updates works only on db but not in the job scheduler
 @router.put("/instance")
 async def update_working_thread(
     body: thread_schema.update_strategy,
@@ -178,17 +158,11 @@ async def update_working_thread(
         if db_thread is None or db_thread.user_id != uid:
             raise HTTPException(status_code=404, detail="Thread not found")
 
-        thread = next((t for t in threads if t.thread_id == body.thread_id and t.user_id == uid), None)
-        if thread is None:
-            raise HTTPException(status_code=404, detail="Thread not running")
-
         update_data = body.dict(exclude_unset=True)
         for key, value in update_data.items():
             setattr(db_thread, key, value)
 
         crud.update_thread(db, db_thread)
-
-        thread.update(body.pair, body.exchange, body.qty, body.leverage, body.message)
 
         return {
             "thread": "updated"
@@ -208,14 +182,7 @@ async def delete_working_thread(
         if db_thread is None or db_thread.user_id != uid:
             raise HTTPException(status_code=404, detail="Thread not found")
 
-        thread = next((t for t in threads if t.thread_id == thread_id and t.user_id == uid), None)
-        if thread is not None:
-            if thread.last_action != 0:
-                raise HTTPException(status_code=401, detail="there are opened position for this strategy")
-            else:
-                thread.stop()
-                threads.remove(thread)
-
+        scheduler_manager.stop_strategy(thread_id)
         crud.delete_thread(db, thread_id)
 
         return {

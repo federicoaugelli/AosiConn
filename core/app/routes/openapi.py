@@ -3,6 +3,10 @@ import os
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 
+description="""
+[Dashboard](/dashboard)
+"""
+
 def get_openapi_configuration(aosicoa: FastAPI):
     
     def custom_openapi():
@@ -10,9 +14,9 @@ def get_openapi_configuration(aosicoa: FastAPI):
             return aosicoa.openapi_schema
         
         openapi_schema = get_openapi(
-            title="Aosicoa Application",
+            title="AosiConn",
             version="alpha 0.1.0",
-            description="Framwork for automated AI trading",
+            description=description,
             routes=aosicoa.routes,
             #swagger_ui_parameters=swagger_ui_parameters
         )
