@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+# API key model
 class KeyBase(BaseModel):
     exchange: str
     api_key: str 
@@ -12,11 +13,9 @@ class KeyCreate(KeyBase):
     pass
 
 
-class TradeBase(BaseModel):
+class Trades(BaseModel):
     user_id: int
-
-class Trade(TradeBase):
-    id: int 
+    exchange: str
     pair: str
     qty: float
     leverage: int
@@ -31,7 +30,7 @@ class Trade(TradeBase):
         from_attributes = True
 
 
-
+# User Data model
 class UserBase(BaseModel):
     name: str
     username: str
@@ -42,11 +41,13 @@ class UserCreate(UserBase):
 class User(UserBase):
     id: int
     password: str
-    trades: list[Trade] = []
+    trades: list[Trades] = []
 
     class Config:
         from_attributes = True
 
+
+# Thread strategies model
 class Thread(BaseModel):
     id: int
     user_id: int
@@ -60,3 +61,13 @@ class Thread(BaseModel):
     class Config:
         from_attributes = True
 
+
+class Balance(BaseModel):
+    id: int
+    user_id: int
+    exchange: str
+    amount: float
+    timestamp: int
+
+    class Config:
+        from_attributes: True

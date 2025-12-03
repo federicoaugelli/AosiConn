@@ -146,7 +146,7 @@ async def create_working_thread(
         return {"error": str(e)}
 
 # TODO finish - now updates works only on db but not in the job scheduler
-@router.put("/instance")
+@router.put("/instance", include_in_schema=False)
 async def update_working_thread(
     body: thread_schema.update_strategy,
     user_id: str = Depends(JWTBearer()),

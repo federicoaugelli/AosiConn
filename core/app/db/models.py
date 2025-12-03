@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Float
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Float, BigInteger
 from sqlalchemy.orm import relationship
 
 from .database import Base
@@ -14,6 +14,7 @@ class User(Base):
     trades = relationship("Trades", back_populates="owner")
     keys = relationship("Keys", back_populates="owner")
     threads = relationship("Threads", back_populates="owner")
+    balance = relationship("Balance", back_populates="owner")
 
 
 class Trades(Base):
@@ -21,6 +22,7 @@ class Trades(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
+    exchange = Column(String)
     pair = Column(String, index=True)
     qty = Column(Integer)
     leverage = Column(Integer)
@@ -61,3 +63,14 @@ class Threads(Base):
     last_heartbeat = Column(Integer)
 
     owner = relationship("User", back_populates="threads")
+
+class Balance(Base):
+    __tablename__ = "balance"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    exchange = Column(String)
+    amount = Column(Float)
+    timestamp = Column(BigInteger)
+
+    owner = relationship("User", back_populates="balance")

@@ -1,4 +1,58 @@
+import asyncio
 from dydx_v4_client.network import make_mainnet
+from dydx_v4_client.node.client import NodeClient
+from dydx_v4_client.key_pair import KeyPair
+from dydx_v4_client.wallet import Wallet
+
+
+class DydxAPI:
+    def __init__(self, test=False):
+        self.client = None
+        self.is_connected = False
+        self.test = test
+
+    async def connect(self):
+        try:
+            if not self.test:
+                config = make_mainnet(
+                    node_url="oegs.dydx.trade:443",
+                    rest_indexer="https://indexer.dydx.trade", 
+                    websocket_indexer="wss://indexer.dydx.trade/v4/ws",
+                ).node
+            else:
+                config = make_mainnet(
+                    node_url="oegs-testnet.dydx.exchange:443",
+                    rest_indexer="https://indexer.v4testnet.dydx.exchange", 
+                    websocket_indexer="wss://indexer.v4testnet.dydx.exchange/v4/ws",
+                ).node
+
+            self.client = await NodeClient.connect(config)
+            self.is_connected = True
+            phrase = ""
+            keypair = KeyPair.from_mnemonic(phrase)
+            wallet = Wallet(keypair, 0, 0)
+            address = wallet.address
+            wallet = await Wallet.from_mnemonic(self.client, phrase, address)
+            return True
+        
+        except Exception as e:
+            print(f"{e}")
+            return False
+
+async def main():
+    client = DydxAPI(test=False)
+    res = await client.connect()
+    print(res)
+
+if __name__ == '__main__':
+    asyncio.run(main())
+
+
+
+
+
+
+
 
 #from ratelimit import limits, sleep_and_retry
 #import json, time, requests

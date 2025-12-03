@@ -22,25 +22,8 @@ async def get_exchanges() -> Dict:
     }
 
 @router.get("/balance/")
-def get_balance(exchange: str, currency: str, user_id: str = Depends(JWTBearer()), dependencies=Depends(JWTBearer()), db: Session = Depends(get_db)):
+def get_balance(days: int, exchange: str, user_id: str = Depends(JWTBearer()), dependencies=Depends(JWTBearer()), db: Session = Depends(get_db)):
     uid = get_user_id(user_id)
-    _exchange = globals().get(exchange)
-    if _exchange:
-        key = crud.get_key(db, uid, exchange)
-        if key:
-            balance = _exchange.get_balance(key.api_key, key.api_secret, currency)
-            return balance
-        else:
-            raise HTTPException(status_code=404, detail="No key found for exchange")
-    else:
-        raise HTTPException(status_code=404, detail="Exchange not found")
+    balance = crud.get_balance(db, uid, exchange, days)
+    return balance
 
-@router.get("/quote/")
-def get_quote(exchange: str, pair: str, size: str, count: int):
-
-    _exchange = globals().get(exchange)
-    if _exchange:
-        quote = _exchange.get_data(size, pair, count)
-        return quote
-    else:
-        raise HTTPException(status_code=404, detail="Exchange not found")
