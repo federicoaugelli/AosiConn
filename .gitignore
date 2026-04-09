@@ -6,13 +6,13 @@ core/app/.DS_Store
 core/app/exchange/.DS_Store
 .DS_Store
 .python-version
-*.toml
-pyproject.toml
+#*.toml
+#pyproject.toml
 .venv
 *.pyc
 *.db
 *.log
-uv.lock
+#uv.lock
 *_old.txt
 aosiconn.db
 __pycache__
