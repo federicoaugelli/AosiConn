@@ -1,9 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import Dict
-from exchange import bitmex
 from auth.auth_bearer import JWTBearer
-from sqlalchemy.orm import Session
 from db import crud, models, schemas
 from db.database import engine
 from utils.router_utils import *
@@ -13,17 +11,22 @@ models.Base.metadata.create_all(bind=engine)
 
 router = APIRouter()
 
+
 @router.get("/list/")
 async def get_exchanges() -> Dict:
     raw_exchanges = os.listdir("exchange")
     exchanges = [file[:-3] for file in raw_exchanges if file.endswith(".py")]
-    return {
-        "exchanges": exchanges
-    }
+    return {"exchanges": exchanges}
+
 
 @router.get("/balance/")
-def get_balance(days: int, exchange: str, user_id: str = Depends(JWTBearer()), dependencies=Depends(JWTBearer()), db: Session = Depends(get_db)):
+def get_balance(
+    exchange: str,
+    days: int = 30,
+    user_id: str = Depends(JWTBearer()),
+    dependencies=Depends(JWTBearer()),
+    db: Session = Depends(get_db),
+):
     uid = get_user_id(user_id)
     balance = crud.get_balance(db, uid, exchange, days)
     return balance
-

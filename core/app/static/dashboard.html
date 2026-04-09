@@ -1,437 +1,1416 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
-    <title>Trading Dashboard</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AosiConn Trading Dashboard</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            900: '#0f172a',
+                            800: '#1e293b',
+                            700: '#334155',
+                            600: '#475569',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
     <style>
-        body {
-            background: #f8f9fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
-            color: #333;
+        [v-cloak] { display: none; }
+        
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+        
+        .metric-card {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 51, 234, 0.1) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.2);
         }
-        .header {
-            display: flex;
-            justify-content: between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #e0e0e0;
+        
+        .metric-positive { color: #10b981; }
+        .metric-negative { color: #ef4444; }
+        
+        .chart-container { position: relative; height: 300px; }
+        
+        .ws-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
         }
-        .card {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        
+        .ws-connected {
+            background-color: #10b981;
+            box-shadow: 0 0 10px #10b981;
         }
-        .card h3 {
-            margin-top: 0;
-            color: #555;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
+        
+        .ws-disconnected { background-color: #ef4444; }
+        
+        .ws-connecting {
+            background-color: #f59e0b;
+            animation: pulse 1.5s infinite;
         }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
-        button {
-            background: #333;
+        
+        .heatmap-cell { transition: all 0.3s ease; }
+        .heatmap-cell:hover { transform: scale(1.05); }
+        
+        .tab-active {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(147, 51, 234, 0.2) 100%);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+        
+        .tab-inactive {
+            background: transparent;
+            border-color: transparent;
+        }
+        
+        .tab-inactive:hover { background: rgba(255, 255, 255, 0.05); }
+        
+        .input-field {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             color: white;
-            border: none;
-            padding: 8px 16px;
+            transition: all 0.2s;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .strategy-card {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .strategy-card:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
             border-radius: 4px;
-            cursor: pointer;
-            margin: 5px;
         }
-        button:hover {
-            background: #555;
+        
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        
+        .toast { animation: slideIn 0.3s ease-out; }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
-        button.secondary {
-            background: #6c757d;
+        
+        .status-running {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
         }
-        button.danger {
-            background: #dc3545;
+        
+        .status-stopped {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
         }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-            color: #666;
-        }
-        input, select {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        .pre {
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-radius: 4px;
-            padding: 15px;
-            font-family: monospace;
-            font-size: 12px;
-            max-height: 200px;
-            overflow: auto;
-        }
-        .tab-container {
-            margin-bottom: 20px;
-        }
-        .tabs {
-            display: flex;
-            border-bottom: 1px solid #ddd;
-            margin-bottom: 20px;
-        }
-        .tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            border: 1px solid transparent;
-            border-bottom: none;
-            margin-right: 5px;
-            border-radius: 4px 4px 0 0;
-        }
-        .tab.active {
-            background: white;
-            border-color: #ddd;
-            border-bottom-color: white;
-        }
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
+        
+        .status-paused {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Trading Dashboard</h1>
-            <button onclick="logout()" class="secondary">Logout</button>
+<body class="bg-dark-900 text-gray-100 min-h-screen">
+    <div id="app" v-cloak>
+        <!-- Toast Notifications -->
+        <div class="fixed top-20 right-4 z-50 space-y-2">
+            <div v-for="toast in toasts" :key="toast.id" 
+                 :class="['toast p-4 rounded-lg shadow-lg max-w-sm', toast.class]">
+                <div class="flex items-center">
+                    <i :data-lucide="toast.icon" class="h-5 w-5 mr-2"></i>
+                    <span>{{ toast.message }}</span>
+                </div>
+            </div>
         </div>
 
-        <div class="tab-container">
-            <div class="tabs">
-                <div class="tab active" onclick="switchTab('overview')">Overview</div>
-                <div class="tab" onclick="switchTab('keys')">API Keys</div>
-                <div class="tab" onclick="switchTab('threads')">Threads</div>
-                <div class="tab" onclick="switchTab('strategies')">Strategies</div>
+        <!-- Header -->
+        <header class="glass-panel sticky top-0 z-40 border-b border-gray-700">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center">
+                            <i data-lucide="activity" class="h-8 w-8 text-blue-500 mr-2"></i>
+                            <h1 class="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+                                AosiConn
+                            </h1>
+                        </div>
+                        <span class="text-sm text-gray-400">Trading Dashboard</span>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center text-sm">
+                            <span :class="['ws-indicator', wsStatusClass]"></span>
+                            <span class="text-gray-400">{{ wsStatusText }}</span>
+                        </div>
+                        
+                        <select v-model="selectedExchange" 
+                                @change="refreshAllData"
+                                class="bg-dark-800 border border-gray-600 rounded-lg px-3 py-1 text-sm focus:outline-none focus:border-blue-500">
+                            <option value="hyperliquid">Hyperliquid</option>
+                        </select>
+                        
+                        <button @click="refreshCurrentTab" 
+                                :disabled="isLoading"
+                                class="p-2 rounded-lg bg-dark-800 hover:bg-dark-700 transition-colors">
+                            <i data-lucide="refresh-cw" :class="['h-4 w-4', isLoading ? 'animate-spin' : '']"></i>
+                        </button>
+                        
+                        <button @click="logout" class="p-2 rounded-lg bg-red-600/20 text-red-400 hover:bg-red-600/30 transition-colors">
+                            <i data-lucide="log-out" class="h-4 w-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Tab Navigation -->
+        <nav class="bg-dark-800 border-b border-gray-700">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex space-x-1 py-2">
+                    <button @click="currentTab = 'overview'" 
+                            :class="['px-4 py-2 rounded-lg text-sm font-medium transition-all border', 
+                                     currentTab === 'overview' ? 'tab-active text-blue-400' : 'tab-inactive text-gray-400 hover:text-gray-200']">
+                        <i data-lucide="layout-dashboard" class="h-4 w-4 inline mr-2"></i>
+                        Overview
+                    </button>
+                    <button @click="currentTab = 'trades'"
+                            :class="['px-4 py-2 rounded-lg text-sm font-medium transition-all border', 
+                                     currentTab === 'trades' ? 'tab-active text-blue-400' : 'tab-inactive text-gray-400 hover:text-gray-200']">
+                        <i data-lucide="list" class="h-4 w-4 inline mr-2"></i>
+                        Trades
+                    </button>
+                    <button @click="currentTab = 'strategies'"
+                            :class="['px-4 py-2 rounded-lg text-sm font-medium transition-all border', 
+                                     currentTab === 'strategies' ? 'tab-active text-blue-400' : 'tab-inactive text-gray-400 hover:text-gray-200']">
+                        <i data-lucide="cpu" class="h-4 w-4 inline mr-2"></i>
+                        Strategies
+                    </button>
+                    <button @click="currentTab = 'apikeys'"
+                            :class="['px-4 py-2 rounded-lg text-sm font-medium transition-all border', 
+                                     currentTab === 'apikeys' ? 'tab-active text-blue-400' : 'tab-inactive text-gray-400 hover:text-gray-200']">
+                        <i data-lucide="key" class="h-4 w-4 inline mr-2"></i>
+                        API Keys
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Connection Error Alert -->
+            <div v-if="connectionError" class="mb-6 p-4 bg-red-900/30 border border-red-500/50 rounded-lg">
+                <div class="flex items-center">
+                    <i data-lucide="alert-circle" class="h-5 w-5 text-red-400 mr-2"></i>
+                    <span class="text-red-200">{{ connectionError }}</span>
+                </div>
             </div>
 
             <!-- Overview Tab -->
-            <div id="overview" class="tab-content active">
-                <div class="grid">
-                    <div class="card">
-                        <h3>User Info</h3>
-                        <div id="user-data" class="pre">Loading...</div>
+            <div v-if="currentTab === 'overview'">
+                <!-- Key Metrics Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <div class="metric-card rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-gray-400 text-sm">Total P&L</span>
+                            <i data-lucide="trending-up" class="h-5 w-5 text-blue-400"></i>
+                        </div>
+                        <div :class="['text-2xl font-bold', performance.total_pnl >= 0 ? 'metric-positive' : 'metric-negative']">
+                            ${{ formatNumber(performance.total_pnl) }}
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">{{ performance.total_trades }} trades</div>
                     </div>
-                    <div class="card">
-                        <h3>Available Exchanges</h3>
-                        <div id="exchanges-data" class="pre">Loading...</div>
+
+                    <div class="metric-card rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-gray-400 text-sm">Win Rate</span>
+                            <i data-lucide="target" class="h-5 w-5 text-purple-400"></i>
+                        </div>
+                        <div class="text-2xl font-bold text-white">{{ performance.win_rate }}%</div>
+                        <div class="text-xs text-gray-500 mt-1">{{ performance.winning_trades }}W / {{ performance.losing_trades }}L</div>
+                    </div>
+
+                    <div class="metric-card rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-gray-400 text-sm">Profit Factor</span>
+                            <i data-lucide="bar-chart-2" class="h-5 w-5 text-green-400"></i>
+                        </div>
+                        <div class="text-2xl font-bold text-white">{{ performance.profit_factor }}</div>
+                        <div class="text-xs text-gray-500 mt-1">Avg Win: ${{ formatNumber(performance.avg_win) }}</div>
+                    </div>
+
+                    <div class="metric-card rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-gray-400 text-sm">Max Drawdown</span>
+                            <i data-lucide="trending-down" class="h-5 w-5 text-red-400"></i>
+                        </div>
+                        <div class="text-2xl font-bold metric-negative">{{ performance.max_drawdown_pct }}%</div>
+                        <div class="text-xs text-gray-500 mt-1">${{ formatNumber(performance.max_drawdown) }}</div>
                     </div>
                 </div>
-                <div class="grid">
-                    <div class="card">
-                        <h3>Balance</h3>
-                        <div class="form-group">
-                            <label>Exchange</label>
-                            <select id="balance-exchange">
-                                <option value="">Select exchange</option>
-                            </select>
+
+                <!-- Charts Row 1 -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <div class="glass-panel rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-white">Equity Curve</h3>
+                            <i data-lucide="line-chart" class="h-5 w-5 text-gray-400"></i>
                         </div>
-                        <div class="form-group">
-                            <label>Currency</label>
-                            <input type="text" id="balance-currency" placeholder="e.g., USDT">
+                        <div class="chart-container">
+                            <canvas id="equityChart"></canvas>
                         </div>
-                        <button onclick="getBalance()">Get Balance</button>
-                        <div id="balance-data" class="pre" style="margin-top: 15px;"></div>
                     </div>
-                    <div class="card">
-                        <h3>Quote</h3>
-                        <div class="form-group">
-                            <label>Exchange</label>
-                            <select id="quote-exchange">
-                                <option value="">Select exchange</option>
+
+                    <div class="glass-panel rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-white">Drawdown</h3>
+                            <i data-lucide="activity" class="h-5 w-5 text-gray-400"></i>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="drawdownChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row 2 -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <!-- Daily P&L -->
+                    <div class="glass-panel rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-white">Daily P&L</h3>
+                            <i data-lucide="calendar" class="h-5 w-5 text-gray-400"></i>
+                        </div>
+                        <div class="chart-container" style="height: 250px;">
+                            <canvas id="dailyPnlChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Strategy Performance -->
+                    <div class="glass-panel rounded-xl p-6 lg:col-span-2">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-white">Strategy Performance</h3>
+                            <i data-lucide="layers" class="h-5 w-5 text-gray-400"></i>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="text-gray-400 border-b border-gray-700">
+                                        <th class="text-left py-2">Strategy</th>
+                                        <th class="text-right py-2">Trades</th>
+                                        <th class="text-right py-2">Win Rate</th>
+                                        <th class="text-right py-2">P&L</th>
+                                        <th class="text-right py-2">Profit Factor</th>
+                                        <th class="text-right py-2">Streak</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="strategy in strategyPerformance" :key="strategy.strategy" 
+                                        class="border-b border-gray-800 hover:bg-dark-800/50">
+                                        <td class="py-3 font-medium">{{ strategy.strategy }}</td>
+                                        <td class="text-right py-3">{{ strategy.total_trades }}</td>
+                                        <td class="text-right py-3">{{ strategy.win_rate }}%</td>
+                                        <td :class="['text-right py-3', strategy.total_pnl >= 0 ? 'metric-positive' : 'metric-negative']">
+                                            ${{ formatNumber(strategy.total_pnl) }}
+                                        </td>
+                                        <td class="text-right py-3">{{ strategy.profit_factor }}</td>
+                                        <td class="text-right py-3">
+                                            <span :class="strategy.current_streak > 0 ? 'metric-positive' : strategy.current_streak < 0 ? 'metric-negative' : 'text-gray-400'">
+                                                {{ strategy.current_streak > 0 ? '+' : '' }}{{ strategy.current_streak }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Position Heatmap & Returns -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <!-- Returns Summary -->
+                    <div class="glass-panel rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-white">Returns</h3>
+                            <i data-lucide="percent" class="h-5 w-5 text-gray-400"></i>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center p-3 bg-dark-800/50 rounded-lg">
+                                <div>
+                                    <div class="text-sm text-gray-400">Daily</div>
+                                    <div class="text-xs text-gray-500">{{ returns.daily.trades }} trades</div>
+                                </div>
+                                <div :class="['text-lg font-bold', returns.daily.pnl >= 0 ? 'metric-positive' : 'metric-negative']">
+                                    {{ returns.daily.return_pct }}%
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center p-3 bg-dark-800/50 rounded-lg">
+                                <div>
+                                    <div class="text-sm text-gray-400">Weekly</div>
+                                    <div class="text-xs text-gray-500">{{ returns.weekly.trades }} trades</div>
+                                </div>
+                                <div :class="['text-lg font-bold', returns.weekly.pnl >= 0 ? 'metric-positive' : 'metric-negative']">
+                                    {{ returns.weekly.return_pct }}%
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center p-3 bg-dark-800/50 rounded-lg">
+                                <div>
+                                    <div class="text-sm text-gray-400">Monthly</div>
+                                    <div class="text-xs text-gray-500">{{ returns.monthly.trades }} trades</div>
+                                </div>
+                                <div :class="['text-lg font-bold', returns.monthly.pnl >= 0 ? 'metric-positive' : 'metric-negative']">
+                                    {{ returns.monthly.return_pct }}%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Position Heatmap -->
+                    <div class="glass-panel rounded-xl p-6 lg:col-span-2">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-white">Position Heatmap (24h)</h3>
+                            <i data-lucide="map" class="h-5 w-5 text-gray-400"></i>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                            <div v-for="item in positionHeatmap" :key="item.pair"
+                                 class="heatmap-cell bg-dark-800/50 rounded-lg p-3 cursor-pointer"
+                                 :style="{ backgroundColor: getHeatmapColor(item.avg_position_size) }">
+                                <div class="text-sm font-medium text-white">{{ item.pair }}</div>
+                                <div class="text-xs text-gray-400 mt-1">Avg: {{ formatNumber(item.avg_position_size) }}</div>
+                                <div :class="['text-xs mt-1', item.unrealized_pnl >= 0 ? 'metric-positive' : 'metric-negative']">
+                                    ${{ formatNumber(item.unrealized_pnl) }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trades Tab -->
+            <div v-if="currentTab === 'trades'">
+                <div class="glass-panel rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-white">Trade History</h3>
+                        <div class="flex space-x-2">
+                            <select v-model="selectedDays" 
+                                    @change="loadRecentTrades"
+                                    class="bg-dark-800 border border-gray-600 rounded-lg px-3 py-1 text-sm focus:outline-none focus:border-blue-500">
+                                <option :value="7">7 Days</option>
+                                <option :value="30">30 Days</option>
+                                <option :value="90">90 Days</option>
                             </select>
+                            <button @click="exportTrades" class="px-3 py-1 text-sm bg-dark-800 rounded-lg hover:bg-dark-700 transition-colors">
+                                <i data-lucide="download" class="h-4 w-4 inline mr-1"></i>
+                                Export CSV
+                            </button>
                         </div>
-                        <div class="form-group">
-                            <label>Pair</label>
-                            <input type="text" id="quote-pair" placeholder="e.g., BTC/USDT">
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="text-gray-400 border-b border-gray-700">
+                                    <th class="text-left py-2">Pair</th>
+                                    <th class="text-left py-2">Strategy</th>
+                                    <th class="text-left py-2">Side</th>
+                                    <th class="text-right py-2">Entry</th>
+                                    <th class="text-right py-2">Exit</th>
+                                    <th class="text-right py-2">P&L ($)</th>
+                                    <th class="text-right py-2">P&L (%)</th>
+                                    <th class="text-right py-2">Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="trade in recentTrades" :key="trade.id" 
+                                    class="border-b border-gray-800 hover:bg-dark-800/50">
+                                    <td class="py-3 font-medium">{{ trade.pair }}</td>
+                                    <td class="py-3 text-gray-400">{{ trade.strategy }}</td>
+                                    <td class="py-3">
+                                        <span :class="['px-2 py-1 rounded text-xs font-medium',
+                                            trade.action === 'buy' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400']">
+                                            {{ trade.action === 'buy' ? 'LONG' : 'SHORT' }}
+                                        </span>
+                                    </td>
+                                    <td class="text-right py-3">{{ formatNumber(trade.entry_price) }}</td>
+                                    <td class="text-right py-3">{{ trade.exit_price ? formatNumber(trade.exit_price) : '-' }}</td>
+                                    <td :class="['text-right py-3 font-medium', trade.pnl_abs >= 0 ? 'metric-positive' : 'metric-negative']">
+                                        {{ trade.pnl_abs >= 0 ? '+' : '' }}${{ formatNumber(trade.pnl_abs) }}
+                                    </td>
+                                    <td :class="['text-right py-3', trade.pnl_pct >= 0 ? 'metric-positive' : 'metric-negative']">
+                                        {{ trade.pnl_pct >= 0 ? '+' : '' }}{{ formatNumber(trade.pnl_pct) }}%
+                                    </td>
+                                    <td class="text-right py-3 text-gray-400">
+                                        {{ formatDuration(trade.duration_seconds) }}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Strategies Tab -->
+            <div v-if="currentTab === 'strategies'">
+                <!-- Running Instances -->
+                <div class="glass-panel rounded-xl p-6 mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-white">Running Instances</h3>
+                        <button @click="showStartInstanceModal = true" 
+                                class="px-4 py-2 bg-green-600/20 text-green-400 rounded-lg hover:bg-green-600/30 transition-colors">
+                            <i data-lucide="play" class="h-4 w-4 inline mr-2"></i>
+                            Start Instance
+                        </button>
+                    </div>
+                    <div v-if="runningInstances.length === 0" class="text-center py-8 text-gray-500">
+                        <i data-lucide="pause-circle" class="h-12 w-12 mx-auto mb-2 opacity-50"></i>
+                        <p>No running instances</p>
+                    </div>
+                    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div v-for="instance in runningInstances" :key="instance.id" class="strategy-card rounded-lg p-4">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h4 class="font-semibold text-white">{{ instance.strategy }}</h4>
+                                    <p class="text-xs text-gray-400">{{ instance.pair }}</p>
+                                </div>
+                                <span :class="['px-2 py-1 rounded text-xs', 
+                                    instance.status === 'running' ? 'status-running' : 'status-stopped']">
+                                    {{ instance.status }}
+                                </span>
+                            </div>
+                            <div class="space-y-1 text-sm text-gray-400 mb-3">
+                                <div class="flex justify-between">
+                                    <span>Exchange:</span>
+                                    <span class="text-white">{{ instance.exchange }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Qty:</span>
+                                    <span class="text-white">{{ instance.qty }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Leverage:</span>
+                                    <span class="text-white">{{ instance.leverage }}x</span>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button @click="stopInstance(instance.id)" 
+                                        class="flex-1 px-3 py-1 bg-red-600/20 text-red-400 rounded hover:bg-red-600/30 transition-colors text-sm">
+                                    <i data-lucide="square" class="h-3 w-3 inline mr-1"></i>
+                                    Stop
+                                </button>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Size</label>
-                            <input type="text" id="quote-size" placeholder="e.g., 0.001">
+                    </div>
+                </div>
+
+                <!-- Available Strategies -->
+                <div class="glass-panel rounded-xl p-6 mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-white">Available Strategies</h3>
+                        <div class="flex space-x-2">
+                            <button @click="refreshStrategies" 
+                                    :disabled="isLoading"
+                                    class="p-2 rounded-lg bg-dark-800 hover:bg-dark-700 transition-colors">
+                                <i data-lucide="refresh-cw" :class="['h-4 w-4', isLoading ? 'animate-spin' : '']"></i>
+                            </button>
+                            <label class="px-4 py-2 bg-blue-600/20 text-blue-400 rounded-lg hover:bg-blue-600/30 transition-colors cursor-pointer">
+                                <i data-lucide="upload" class="h-4 w-4 inline mr-2"></i>
+                                Upload Strategy
+                                <input type="file" @change="uploadStrategy" accept=".zip" class="hidden">
+                            </label>
                         </div>
-                        <div class="form-group">
-                            <label>Count</label>
-                            <input type="number" id="quote-count" value="1">
+                    </div>
+                    <div v-if="availableStrategies.length === 0" class="text-center py-8 text-gray-500">
+                        <i data-lucide="folder-open" class="h-12 w-12 mx-auto mb-2 opacity-50"></i>
+                        <p>No strategies available</p>
+                    </div>
+                    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div v-for="strategy in availableStrategies" :key="strategy.filename" class="strategy-card rounded-lg p-4">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h4 class="font-semibold text-white">{{ strategy.name }}</h4>
+                                    <p class="text-xs text-gray-400">{{ strategy.filename }}</p>
+                                </div>
+                                <div class="flex space-x-1">
+                                    <button @click="deleteStrategy(strategy.filename)" 
+                                            class="p-1 text-red-400 hover:bg-red-600/20 rounded transition-colors">
+                                        <i data-lucide="trash-2" class="h-4 w-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-400 mb-3">{{ strategy.description }}</p>
+                            <button @click="openStartInstanceModal(strategy.filename)" 
+                                    class="w-full mt-2 px-3 py-2 bg-green-600/20 text-green-400 rounded hover:bg-green-600/30 transition-colors text-sm">
+                                <i data-lucide="play" class="h-4 w-4 inline mr-2"></i>
+                                Start Instance
+                            </button>
                         </div>
-                        <button onclick="getQuote()">Get Quote</button>
-                        <div id="quote-data" class="pre" style="margin-top: 15px;"></div>
                     </div>
                 </div>
             </div>
 
             <!-- API Keys Tab -->
-            <div id="keys" class="tab-content">
-                <div class="card">
-                    <h3>Manage API Keys</h3>
-                    <div class="form-group">
-                        <label>Exchange</label>
-                        <input type="text" id="key-exchange" placeholder="e.g., binance">
+            <div v-if="currentTab === 'apikeys'">
+                <div class="glass-panel rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold text-white">API Keys</h3>
+                        <button @click="showAddKeyModal = true" 
+                                class="px-4 py-2 bg-blue-600/20 text-blue-400 rounded-lg hover:bg-blue-600/30 transition-colors">
+                            <i data-lucide="plus" class="h-4 w-4 inline mr-2"></i>
+                            Add Key
+                        </button>
                     </div>
-                    <div class="form-group">
-                        <label>API Key</label>
-                        <input type="text" id="api-key" placeholder="Your API key">
+                    
+                    <div v-if="apiKeys.length === 0" class="text-center py-8 text-gray-500">
+                        <i data-lucide="key" class="h-12 w-12 mx-auto mb-2 opacity-50"></i>
+                        <p>No API keys configured</p>
                     </div>
-                    <div class="form-group">
-                        <label>API Secret</label>
-                        <input type="password" id="api-secret" placeholder="Your API secret">
+                    
+                    <div v-else class="space-y-4">
+                        <div v-for="key in apiKeys" :key="key.id" class="strategy-card rounded-lg p-4">
+                            <div class="flex justify-between items-start">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-10 h-10 rounded-lg bg-blue-600/20 flex items-center justify-center">
+                                        <i data-lucide="key" class="h-5 w-5 text-blue-400"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-white capitalize">{{ key.exchange }}</h4>
+                                        <p class="text-xs text-gray-400">API Key: {{ maskApiKey(key.api_key) }}</p>
+                                        <p class="text-xs text-gray-500">Created: {{ formatDate(key.created_at) }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button @click="editKey(key)" 
+                                            class="p-2 text-yellow-400 hover:bg-yellow-600/20 rounded transition-colors">
+                                        <i data-lucide="edit" class="h-4 w-4"></i>
+                                    </button>
+                                    <button @click="deleteKey(key.exchange)" 
+                                            class="p-2 text-red-400 hover:bg-red-600/20 rounded transition-colors">
+                                        <i data-lucide="trash-2" class="h-4 w-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <button onclick="createKey()">Create Key</button>
-                    <button onclick="updateKey()" class="secondary">Update Key</button>
-                    <button onclick="deleteKey()" class="danger">Delete Key</button>
-                </div>
-                <div class="card">
-                    <h3>Your API Keys</h3>
-                    <div id="keys-data" class="pre">Loading...</div>
                 </div>
             </div>
+        </main>
 
-            <!-- Threads Tab -->
-            <div id="threads" class="tab-content">
-                <div class="card">
-                    <h3>Upload Strategy File</h3>
-                    <input type="file" id="strategy-file">
-                    <button onclick="uploadThread()">Upload</button>
+        <!-- Start Instance Modal -->
+        <div v-if="showStartInstanceModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+            <div class="glass-panel rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-white">Start Strategy Instance</h3>
+                    <button @click="showStartInstanceModal = false" class="text-gray-400 hover:text-white">
+                        <i data-lucide="x" class="h-5 w-5"></i>
+                    </button>
                 </div>
-                <div class="card">
-                    <h3>Available Threads</h3>
-                    <div id="threads-data" class="pre">Loading...</div>
-                </div>
+                <form @submit.prevent="startInstance">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-1">Strategy</label>
+                            <select v-model="newInstance.strategy" required class="input-field w-full px-3 py-2 rounded-lg">
+                                <option v-for="s in availableStrategies" :key="s.filename" :value="s.filename">{{ s.name }}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-1">Trading Pair</label>
+                            <input v-model="newInstance.pair" type="text" required 
+                                   placeholder="e.g., BTC-USD" class="input-field w-full px-3 py-2 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-1">Exchange</label>
+                            <select v-model="newInstance.exchange" required class="input-field w-full px-3 py-2 rounded-lg">
+                                <option v-for="e in exchanges" :key="e" :value="e">{{ e }}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-1">Quantity</label>
+                            <input v-model="newInstance.qty" type="number" step="0.0001" required 
+                                   placeholder="0.01" class="input-field w-full px-3 py-2 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-1">Leverage</label>
+                            <input v-model="newInstance.leverage" type="number" required 
+                                   placeholder="1" class="input-field w-full px-3 py-2 rounded-lg">
+                        </div>
+                    </div>
+                    <div class="mt-6 flex space-x-3">
+                        <button type="button" @click="showStartInstanceModal = false" 
+                                class="flex-1 px-4 py-2 bg-dark-700 text-gray-300 rounded-lg hover:bg-dark-600 transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit" 
+                                class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                            Start
+                        </button>
+                    </div>
+                </form>
             </div>
+        </div>
 
-            <!-- Strategies Tab -->
-            <div id="strategies" class="tab-content">
-                <div class="card">
-                    <h3>Create Working Thread</h3>
-                    <div class="form-group">
-                        <label>Strategy</label>
-                        <input type="text" id="strategy-name" placeholder="Strategy name">
-                    </div>
-                    <div class="form-group">
-                        <label>Pair</label>
-                        <input type="text" id="strategy-pair" placeholder="e.g., BTC/USDT">
-                    </div>
-                    <div class="form-group">
-                        <label>Exchange</label>
-                        <input type="text" id="strategy-exchange" placeholder="e.g., binance">
-                    </div>
-                    <div class="form-group">
-                        <label>Quantity</label>
-                        <input type="number" id="strategy-qty" value="1">
-                    </div>
-                    <div class="form-group">
-                        <label>Leverage</label>
-                        <input type="number" id="strategy-leverage" value="1">
-                    </div>
-                    <button onclick="createStrategy()">Create Strategy</button>
+        <!-- Add/Edit API Key Modal -->
+        <div v-if="showAddKeyModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+            <div class="glass-panel rounded-xl p-6 max-w-md w-full">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-white">{{ editingKey ? 'Edit' : 'Add' }} API Key</h3>
+                    <button @click="closeKeyModal" class="text-gray-400 hover:text-white">
+                        <i data-lucide="x" class="h-5 w-5"></i>
+                    </button>
                 </div>
-                <div class="card">
-                    <h3>Active Strategies</h3>
-                    <div id="strategies-data" class="pre">Loading...</div>
-                </div>
+                <form @submit.prevent="saveKey">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-1">Exchange</label>
+                            <select v-model="keyForm.exchange" :disabled="editingKey" required 
+                                    class="input-field w-full px-3 py-2 rounded-lg">
+                                <option v-for="e in exchanges" :key="e" :value="e">{{ e }}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-1">API Key</label>
+                            <input v-model="keyForm.api_key" type="text" required 
+                                   class="input-field w-full px-3 py-2 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-1">API Secret</label>
+                            <input v-model="keyForm.api_secret" type="password" required 
+                                   class="input-field w-full px-3 py-2 rounded-lg">
+                        </div>
+                    </div>
+                    <div class="mt-6 flex space-x-3">
+                        <button type="button" @click="closeKeyModal" 
+                                class="flex-1 px-4 py-2 bg-dark-700 text-gray-300 rounded-lg hover:bg-dark-600 transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit" 
+                                class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                            {{ editingKey ? 'Update' : 'Add' }}
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 
     <script>
-        const token = localStorage.getItem('token');
-        if (!token) window.location.href = '/dashboard/login';
-        /*async function checkAuth() {
-            try {
-                const response = await fetch('/auth/user', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
+        const { createApp } = Vue;
 
-                if (response.status === 403 || response.status === 401) {
-                    localStorage.removeItem('token');
-                    window.location.href = '/dashboard/login';
-                }
-            }
-
-            catch (error) {
-                console.error('Auth check failed:', error)
-                localStorage.removeItem('token);
-                window.location.href = '/dashboard/login';
-            }
-        }
-        checkAuth();*/
-
-        async function apiCall(endpoint, options = {}) {
-            try {
-                const response = await fetch(endpoint, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                        ...options.headers
+        createApp({
+            data() {
+                return {
+                    ws: null,
+                    wsStatus: 'disconnected',
+                    connectionError: null,
+                    reconnectAttempts: 0,
+                    maxReconnectAttempts: 5,
+                    
+                    currentTab: 'overview',
+                    selectedExchange: 'hyperliquid',
+                    selectedDays: 30,
+                    isLoading: false,
+                    
+                    performance: {},
+                    equityCurve: [],
+                    recentTrades: [],
+                    strategyPerformance: [],
+                    positionHeatmap: [],
+                    returns: { daily: {}, weekly: {}, monthly: {} },
+                    
+                    charts: {},
+                    dailyMetrics: [],
+                    
+                    availableStrategies: [],
+                    runningInstances: [],
+                    apiKeys: [],
+                    exchanges: ['hyperliquid'],
+                    
+                    showStartInstanceModal: false,
+                    showAddKeyModal: false,
+                    editingKey: false,
+                    
+                    newInstance: {
+                        strategy: '',
+                        pair: '',
+                        exchange: 'hyperliquid',
+                        qty: '',
+                        leverage: 1
                     },
-                    ...options
-                });
-                
-                if (response.status === 401) {
-                    logout();
-                    return null;
+                    
+                    keyForm: {
+                        exchange: '',
+                        api_key: '',
+                        api_secret: ''
+                    },
+                    
+                    toasts: []
+                }
+            },
+            
+            computed: {
+                wsStatusClass() {
+                    return {
+                        'connected': 'ws-connected',
+                        'connecting': 'ws-connecting',
+                        'disconnected': 'ws-disconnected'
+                    }[this.wsStatus];
+                },
+                wsStatusText() {
+                    return {
+                        'connected': 'Live',
+                        'connecting': 'Connecting...',
+                        'disconnected': 'Offline'
+                    }[this.wsStatus];
+                }
+            },
+            
+            async mounted() {
+                lucide.createIcons();
+
+                const hasSession = await this.ensureAuthenticated();
+                if (!hasSession) {
+                    return;
                 }
                 
-                return await response.json();
-            } catch (error) {
-                console.error('API call failed:', error);
-                return { error: error.message };
+                await this.refreshCurrentTab();
+                this.connectWebSocket();
+                lucide.createIcons();
+            },
+            
+            watch: {
+                currentTab() {
+                    this.refreshCurrentTab();
+                    lucide.createIcons();
+                }
+            },
+            
+            methods: {
+                async ensureAuthenticated() {
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        this.redirectToLogin();
+                        return false;
+                    }
+
+                    try {
+                        const response = await fetch('/auth/user', {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+
+                        if (response.ok) {
+                            return true;
+                        }
+                    } catch (error) {
+                        console.error('Session validation error:', error);
+                    }
+
+                    this.handleAuthFailure();
+                    return false;
+                },
+
+                handleAuthFailure() {
+                    localStorage.removeItem('token');
+                    if (this.ws) {
+                        this.ws.close();
+                    }
+                    this.redirectToLogin();
+                },
+
+                redirectToLogin() {
+                    window.location.href = '/dashboard/login';
+                },
+
+                showToast(message, type = 'success') {
+                    const id = Date.now();
+                    const toastClass = type === 'success' ? 'bg-green-900/50 border border-green-500/50 text-green-200' :
+                                      type === 'error' ? 'bg-red-900/50 border border-red-500/50 text-red-200' :
+                                      'bg-blue-900/50 border border-blue-500/50 text-blue-200';
+                    const icon = type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info';
+                    
+                    this.toasts.push({ id, message, class: toastClass, icon });
+                    setTimeout(() => {
+                        this.toasts = this.toasts.filter(t => t.id !== id);
+                    }, 3000);
+                    this.$nextTick(() => lucide.createIcons());
+                },
+                
+                connectWebSocket() {
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        this.handleAuthFailure();
+                        return;
+                    }
+                    
+                    this.wsStatus = 'connecting';
+                    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                    const wsUrl = `${protocol}//${window.location.host}/ws?token=${token}`;
+                    
+                    this.ws = new WebSocket(wsUrl);
+                    
+                    this.ws.onopen = () => {
+                        this.wsStatus = 'connected';
+                        this.reconnectAttempts = 0;
+                        this.connectionError = null;
+                    };
+                    
+                    this.ws.onmessage = (event) => {
+                        const message = JSON.parse(event.data);
+                        this.handleWebSocketMessage(message);
+                    };
+                    
+                    this.ws.onclose = (event) => {
+                        this.wsStatus = 'disconnected';
+                        if (event.code === 4001) {
+                            this.handleAuthFailure();
+                            return;
+                        }
+                        this.attemptReconnect();
+                    };
+                    
+                    this.ws.onerror = (error) => {
+                        console.error('WebSocket error:', error);
+                        this.connectionError = 'Connection error. Retrying...';
+                    };
+                },
+                
+                attemptReconnect() {
+                    if (this.reconnectAttempts < this.maxReconnectAttempts) {
+                        this.reconnectAttempts++;
+                        setTimeout(() => this.connectWebSocket(), 3000 * this.reconnectAttempts);
+                    } else {
+                        this.connectionError = 'Unable to connect to real-time updates. Using polling mode.';
+                    }
+                },
+                
+                handleWebSocketMessage(message) {
+                    switch (message.type) {
+                        case 'performance_update':
+                            this.performance = message.data;
+                            break;
+                        case 'trade_update':
+                            this.recentTrades.unshift(message.data);
+                            if (this.recentTrades.length > 20) this.recentTrades.pop();
+                            break;
+                    }
+                },
+                
+                async refreshCurrentTab() {
+                    if (this.currentTab === 'overview') {
+                        await this.refreshAllData();
+                    } else if (this.currentTab === 'trades') {
+                        await this.loadRecentTrades();
+                    } else if (this.currentTab === 'strategies') {
+                        await this.refreshStrategies();
+                    } else if (this.currentTab === 'apikeys') {
+                        await this.loadApiKeys();
+                    }
+                },
+                
+                async refreshAllData() {
+                    this.isLoading = true;
+                    try {
+                        await Promise.all([
+                            this.loadPerformance(),
+                            this.loadEquityCurve(),
+                            this.loadDailyMetrics(),
+                            this.loadStrategyPerformance(),
+                            this.loadPositionHeatmap(),
+                            this.loadReturns()
+                        ]);
+                        this.updateCharts();
+                    } catch (error) {
+                        console.error('Error loading data:', error);
+                        this.showToast('Failed to load dashboard data', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+                
+                async refreshStrategies() {
+                    this.isLoading = true;
+                    try {
+                        await Promise.all([
+                            this.loadAvailableStrategies(),
+                            this.loadRunningInstances()
+                        ]);
+                    } catch (error) {
+                        console.error('Error loading strategies:', error);
+                        this.showToast('Failed to load strategies', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+                
+                async apiCall(endpoint, options = {}) {
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        this.handleAuthFailure();
+                        throw new Error('Unauthorized');
+                    }
+
+                    const { headers = {}, ...restOptions } = options;
+
+                    const response = await fetch(endpoint, {
+                        ...restOptions,
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            ...headers
+                        },
+                    });
+                    
+                    if (response.status === 401 || response.status === 403) {
+                        this.handleAuthFailure();
+                        throw new Error('Unauthorized');
+                    }
+                    
+                    return response;
+                },
+                
+                async loadPerformance() {
+                    const response = await this.apiCall(`/stats/performance?exchange=${this.selectedExchange}&days=${this.selectedDays}`);
+                    this.performance = await response.json();
+                },
+                
+                async loadEquityCurve() {
+                    const response = await this.apiCall(`/stats/equity-curve?exchange=${this.selectedExchange}&days=${this.selectedDays}`);
+                    this.equityCurve = await response.json();
+                },
+                
+                async loadDailyMetrics() {
+                    const response = await this.apiCall(`/stats/daily-metrics?exchange=${this.selectedExchange}&days=${this.selectedDays}`);
+                    this.dailyMetrics = await response.json();
+                },
+                
+                async loadStrategyPerformance() {
+                    const response = await this.apiCall(`/stats/strategy-performance?exchange=${this.selectedExchange}`);
+                    this.strategyPerformance = await response.json();
+                },
+                
+                async loadPositionHeatmap() {
+                    const response = await this.apiCall(`/stats/position-heatmap?exchange=${this.selectedExchange}&hours=24`);
+                    this.positionHeatmap = await response.json();
+                },
+                
+                async loadReturns() {
+                    const response = await this.apiCall(`/stats/returns?exchange=${this.selectedExchange}`);
+                    this.returns = await response.json();
+                },
+                
+                async loadRecentTrades() {
+                    this.isLoading = true;
+                    try {
+                        const response = await this.apiCall(`/stats/trades?exchange=${this.selectedExchange}&days=${this.selectedDays}&limit=100`);
+                        this.recentTrades = await response.json();
+                    } catch (error) {
+                        this.showToast('Failed to load trades', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+                
+                async loadAvailableStrategies() {
+                    const response = await this.apiCall('/thread/');
+                    const data = await response.json();
+                    this.availableStrategies = data.threads || [];
+                },
+                
+                async loadRunningInstances() {
+                    const response = await this.apiCall('/thread/instance');
+                    this.runningInstances = await response.json();
+                },
+                
+                async loadApiKeys() {
+                    const response = await this.apiCall('/key/');
+                    this.apiKeys = await response.json();
+                },
+                
+                async uploadStrategy(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    
+                    this.isLoading = true;
+                    try {
+                        const response = await this.apiCall('/thread/upload/', {
+                            method: 'POST',
+                            headers: {},
+                            body: formData
+                        });
+                        
+                        if (response.ok) {
+                            this.showToast('Strategy uploaded successfully');
+                            await this.loadAvailableStrategies();
+                        } else {
+                            const error = await response.json();
+                            this.showToast(error.detail || 'Failed to upload strategy', 'error');
+                        }
+                    } catch (error) {
+                        this.showToast('Failed to upload strategy', 'error');
+                    } finally {
+                        this.isLoading = false;
+                        event.target.value = '';
+                    }
+                },
+                
+                async deleteStrategy(name) {
+                    if (!confirm(`Delete strategy "${name}"?`)) return;
+                    
+                    try {
+                        const response = await this.apiCall(`/thread/${name}/`, {
+                            method: 'DELETE'
+                        });
+                        
+                        if (response.ok) {
+                            this.showToast('Strategy deleted');
+                            await this.loadAvailableStrategies();
+                        } else {
+                            this.showToast('Failed to delete strategy', 'error');
+                        }
+                    } catch (error) {
+                        this.showToast('Failed to delete strategy', 'error');
+                    }
+                },
+                
+                openStartInstanceModal(strategy) {
+                    this.newInstance = {
+                        strategy: strategy || '',
+                        pair: '',
+                        exchange: this.selectedExchange,
+                        qty: '',
+                        leverage: 1
+                    };
+                    this.showStartInstanceModal = true;
+                    this.$nextTick(() => lucide.createIcons());
+                },
+                
+                async startInstance() {
+                    this.isLoading = true;
+                    try {
+                        const response = await this.apiCall('/thread/instance', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.newInstance)
+                        });
+                        
+                        if (response.ok) {
+                            this.showToast('Instance started successfully');
+                            this.showStartInstanceModal = false;
+                            await this.loadRunningInstances();
+                        } else {
+                            const error = await response.json();
+                            this.showToast(error.detail || 'Failed to start instance', 'error');
+                        }
+                    } catch (error) {
+                        this.showToast('Failed to start instance', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+                
+                async stopInstance(id) {
+                    if (!confirm('Stop this instance?')) return;
+                    
+                    try {
+                        const response = await this.apiCall(`/thread/instance?thread_id=${id}`, {
+                            method: 'DELETE'
+                        });
+                        
+                        if (response.ok) {
+                            this.showToast('Instance stopped');
+                            await this.loadRunningInstances();
+                        } else {
+                            this.showToast('Failed to stop instance', 'error');
+                        }
+                    } catch (error) {
+                        this.showToast('Failed to stop instance', 'error');
+                    }
+                },
+                
+                editKey(key) {
+                    this.keyForm = {
+                        exchange: key.exchange,
+                        api_key: key.api_key,
+                        api_secret: ''
+                    };
+                    this.editingKey = true;
+                    this.showAddKeyModal = true;
+                    this.$nextTick(() => lucide.createIcons());
+                },
+                
+                closeKeyModal() {
+                    this.showAddKeyModal = false;
+                    this.editingKey = false;
+                    this.keyForm = { exchange: '', api_key: '', api_secret: '' };
+                },
+                
+                async saveKey() {
+                    this.isLoading = true;
+                    try {
+                        const method = this.editingKey ? 'PUT' : 'POST';
+                        const response = await this.apiCall('/key/', {
+                            method,
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.keyForm)
+                        });
+                        
+                        if (response.ok) {
+                            this.showToast(`API key ${this.editingKey ? 'updated' : 'added'} successfully`);
+                            this.closeKeyModal();
+                            await this.loadApiKeys();
+                        } else {
+                            const error = await response.json();
+                            this.showToast(error.detail || 'Failed to save API key', 'error');
+                        }
+                    } catch (error) {
+                        this.showToast('Failed to save API key', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+                
+                async deleteKey(exchange) {
+                    if (!confirm(`Delete API key for ${exchange}?`)) return;
+                    
+                    try {
+                        const response = await this.apiCall(`/key/?exchange=${exchange}`, {
+                            method: 'DELETE'
+                        });
+                        
+                        if (response.ok) {
+                            this.showToast('API key deleted');
+                            await this.loadApiKeys();
+                        } else {
+                            this.showToast('Failed to delete API key', 'error');
+                        }
+                    } catch (error) {
+                        this.showToast('Failed to delete API key', 'error');
+                    }
+                },
+                
+                updateCharts() {
+                    this.$nextTick(() => {
+                        this.renderEquityChart();
+                        this.renderDrawdownChart();
+                        this.renderDailyPnlChart();
+                    });
+                },
+
+                renderDailyPnlChart() {
+                    const ctx = document.getElementById('dailyPnlChart');
+                    if (!ctx || !this.dailyMetrics.length) return;
+
+                    if (this.charts.dailyPnl) {
+                        this.charts.dailyPnl.destroy();
+                    }
+
+                    const colors = this.dailyMetrics.map(d =>
+                        d.net_pnl >= 0 ? '#10b981' : '#ef4444'
+                    );
+
+                    this.charts.dailyPnl = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: this.dailyMetrics.map(d => new Date(d.date).toLocaleDateString()),
+                            datasets: [{
+                                label: 'P&L',
+                                data: this.dailyMetrics.map(d => d.net_pnl),
+                                backgroundColor: colors,
+                                borderRadius: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                x: {
+                                    grid: { display: false },
+                                    ticks: { color: '#9ca3af' }
+                                },
+                                y: {
+                                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                                    ticks: { color: '#9ca3af' }
+                                }
+                            }
+                        }
+                    });
+                },
+                
+                renderEquityChart() {
+                    const ctx = document.getElementById('equityChart');
+                    if (!ctx || !this.equityCurve.length) return;
+                    
+                    if (this.charts.equity) this.charts.equity.destroy();
+                    
+                    this.charts.equity = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: this.equityCurve.map(e => new Date(e.timestamp).toLocaleDateString()),
+                            datasets: [{
+                                label: 'Balance',
+                                data: this.equityCurve.map(e => e.balance),
+                                borderColor: '#3b82f6',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                fill: true,
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                x: { grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: '#9ca3af' } },
+                                y: { grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: '#9ca3af' } }
+                            }
+                        }
+                    });
+                },
+                
+                renderDrawdownChart() {
+                    const ctx = document.getElementById('drawdownChart');
+                    if (!ctx || !this.equityCurve.length) return;
+                    
+                    if (this.charts.drawdown) this.charts.drawdown.destroy();
+                    
+                    this.charts.drawdown = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: this.equityCurve.map(e => new Date(e.timestamp).toLocaleDateString()),
+                            datasets: [{
+                                label: 'Drawdown %',
+                                data: this.equityCurve.map(e => -e.drawdown_pct),
+                                borderColor: '#ef4444',
+                                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                fill: true,
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                x: { grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: '#9ca3af' } },
+                                y: { grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: '#9ca3af' } }
+                            }
+                        }
+                    });
+                },
+                
+                formatNumber(num) {
+                    if (num === null || num === undefined) return '0.00';
+                    return num.toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                },
+
+                formatDuration(seconds) {
+                    if (!seconds) return '-';
+                    const hours = Math.floor(seconds / 3600);
+                    const minutes = Math.floor((seconds % 3600) / 60);
+
+                    if (hours > 0) {
+                        return `${hours}h ${minutes}m`;
+                    }
+                    return `${minutes}m`;
+                },
+
+                getHeatmapColor(size) {
+                    const maxSize = 1000;
+                    const intensity = Math.min(size / maxSize, 1);
+
+                    const r = Math.floor(30 + (59 - 30) * intensity);
+                    const g = Math.floor(41 + (130 - 41) * intensity);
+                    const b = Math.floor(59 + (246 - 59) * intensity);
+                    const a = 0.3 + (0.7 * intensity);
+
+                    return `rgba(${r}, ${g}, ${b}, ${a})`;
+                },
+
+                exportTrades() {
+                    const headers = ['Pair', 'Strategy', 'Side', 'Entry', 'Exit', 'P&L', 'P&L%', 'Duration'];
+                    const rows = this.recentTrades.map(t => [
+                        t.pair,
+                        t.strategy,
+                        t.action === 'buy' ? 'LONG' : 'SHORT',
+                        t.entry_price,
+                        t.exit_price || '',
+                        t.pnl_abs,
+                        t.pnl_pct,
+                        t.duration_seconds || ''
+                    ]);
+
+                    const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+                    const blob = new Blob([csv], { type: 'text/csv' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `trades_${new Date().toISOString().split('T')[0]}.csv`;
+                    a.click();
+                },
+
+                maskApiKey(key) {
+                    if (!key) return '';
+                    return key.substring(0, 6) + '...' + key.substring(key.length - 4);
+                },
+                
+                formatDate(dateStr) {
+                    if (!dateStr) return '';
+                    return new Date(dateStr).toLocaleDateString();
+                },
+                
+                logout() {
+                    this.handleAuthFailure();
+                }
             }
-        }
-
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            
-            event.target.classList.add('active');
-            document.getElementById(tabName).classList.add('active');
-        }
-
-        async function loadOverview() {
-            const [user, exchanges] = await Promise.all([
-                apiCall('/auth/user'),
-                apiCall('/exchange/list/')
-            ]);
-            
-            document.getElementById('user-data').textContent = JSON.stringify(user, null, 2);
-            document.getElementById('exchanges-data').textContent = (exchanges.exchanges || []).join(', ');
-            
-            // Populate exchange dropdowns
-            const exchangesList = exchanges.exchanges || [];
-            const exchangeSelects = document.querySelectorAll('select[id$="exchange"]');
-            exchangeSelects.forEach(select => {
-                select.innerHTML = '<option value="">Select exchange</option>' +
-                    exchangesList.map(ex => `<option value="${ex}">${ex}</option>`).join('');
-            });
-        }
-
-        async function loadKeys() {
-            const keys = await apiCall('/key/');
-            document.getElementById('keys-data').textContent = JSON.stringify(keys, null, 2);
-        }
-
-        async function loadThreads() {
-            const threads = await apiCall('/thread/');
-            document.getElementById('threads-data').textContent = JSON.stringify(threads, null, 2);
-        }
-
-        async function loadStrategies() {
-            const strategies = await apiCall('/thread/instance');
-            document.getElementById('strategies-data').textContent = JSON.stringify(strategies, null, 2);
-        }
-
-        async function createKey() {
-            const keyData = {
-                exchange: document.getElementById('key-exchange').value,
-                api_key: document.getElementById('api-key').value,
-                api_secret: document.getElementById('api-secret').value
-            };
-            
-            await apiCall('/key/', {
-                method: 'POST',
-                body: JSON.stringify(keyData)
-            });
-            
-            loadKeys();
-        }
-
-        async function updateKey() {
-            const keyData = {
-                exchange: document.getElementById('key-exchange').value,
-                api_key: document.getElementById('api-key').value,
-                api_secret: document.getElementById('api-secret').value
-            };
-            
-            await apiCall('/key/', {
-                method: 'PUT',
-                body: JSON.stringify(keyData)
-            });
-            
-            loadKeys();
-        }
-
-        async function deleteKey() {
-            const exchange = document.getElementById('key-exchange').value;
-            await apiCall(`/key/?exchange=${exchange}`, { method: 'DELETE' });
-            loadKeys();
-        }
-
-        async function uploadThread() {
-            const fileInput = document.getElementById('strategy-file');
-            const formData = new FormData();
-            formData.append('file', fileInput.files[0]);
-            
-            await fetch('/thread/upload/', {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` },
-                body: formData
-            });
-            
-            loadThreads();
-        }
-
-        async function createStrategy() {
-            const strategyData = {
-                strategy: document.getElementById('strategy-name').value,
-                pair: document.getElementById('strategy-pair').value,
-                exchange: document.getElementById('strategy-exchange').value,
-                qty: parseInt(document.getElementById('strategy-qty').value),
-                leverage: parseInt(document.getElementById('strategy-leverage').value)
-            };
-            
-            await apiCall('/thread/instance', {
-                method: 'POST',
-                body: JSON.stringify(strategyData)
-            });
-            
-            loadStrategies();
-        }
-
-        function getBalance() {
-            document.getElementById('balance-data').textContent = 'Feature not yet implemented';
-        }
-
-        function getQuote() {
-            document.getElementById('quote-data').textContent = 'Feature not yet implemented';
-        }
-
-        function logout() {
-            localStorage.removeItem('token');
-            window.location.href = '/dashboard/login';
-        }
-
-        // Initial load
-        loadOverview();
-        loadKeys();
-        loadThreads();
-        loadStrategies();
+        }).mount('#app');
     </script>
 </body>
 </html>
