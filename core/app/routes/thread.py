@@ -73,6 +73,9 @@ async def upload_thread(
             # os.rmdir(f"threads/{file.filename[:-4]}")
             raise HTTPException(status_code=400, detail="Config file not found")
 
+        if not os.path.exists(f"threads/{file.filename[:-4]}/main.py"):
+            raise HTTPException(status_code=400, detail="main.py file not found")
+
         if not any(
             file.endswith(".py") for file in os.listdir(f"threads/{file.filename[:-4]}")
         ):
@@ -82,12 +85,6 @@ async def upload_thread(
     else:
         raise HTTPException(status_code=400, detail="File must be a zip file")
 
-    filename = file.filename[:-4]
-
-    # change the name of the python file inside the folder to main
-    for file in os.listdir(f"threads/{filename}"):
-        if file.endswith(".py"):
-            os.rename(f"threads/{filename}/{file}", f"threads/{filename}/main.py")
 
     return {f"{filename} ingested successfully"}
 
