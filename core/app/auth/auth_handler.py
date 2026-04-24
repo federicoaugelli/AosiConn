@@ -1,26 +1,45 @@
 import time
+import uuid
 from typing import Dict
 import jwt
 from decouple import config
 
-JWT_SECRET = "secret_key"
+JWT_SECRET = config("JWT_SECRET_KEY", default="change-me-in-production")
 JWT_ALGORITHM = "HS256"
 
-def token_response(token: str):
-    return {
-        "access_token": token
-    }
+ACCESS_TOKEN_EXPIRE = 60 * 60 * 2        # 2 hours
+REFRESH_TOKEN_EXPIRE = 60 * 60 * 24 * 7  # 7 days
 
-def signJWT(user_id: str, name: str,  username: str) -> Dict[str, str]:
+
+def token_response(access_token: str, refresh_token: str | None = None):
+    body: dict = {"access_token": access_token}
+    if refresh_token:
+        body["refresh_token"] = refresh_token
+    return body
+
+
+def signAccessJWT(user_id: str, name: str, username: str) -> Dict[str, str]:
     payload = {
         "user_id": user_id,
         "name": name,
         "username": username,
-        "expires": time.time() + (60*30)
+        "type": "access",
+        "jti": uuid.uuid4().hex,
+        "expires": time.time() + ACCESS_TOKEN_EXPIRE,
     }
     token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+    return token
 
-    return token_response(token)
+
+def signRefreshJWT(user_id: str) -> Dict[str, str]:
+    payload = {
+        "user_id": user_id,
+        "type": "refresh",
+        "jti": uuid.uuid4().hex,
+        "expires": time.time() + REFRESH_TOKEN_EXPIRE,
+    }
+    token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+    return token
 
 
 def decodeJWT(token: str) -> dict:

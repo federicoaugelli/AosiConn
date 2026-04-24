@@ -738,6 +738,7 @@
         createApp({
             data() {
                 return {
+                    accessToken: null,
                     ws: null,
                     wsStatus: 'disconnected',
                     connectionError: null,
@@ -825,20 +826,14 @@
             
             methods: {
                 async ensureAuthenticated() {
-                    const token = localStorage.getItem('token');
-                    if (!token) {
-                        this.redirectToLogin();
-                        return false;
-                    }
-
                     try {
-                        const response = await fetch('/auth/user', {
-                            headers: {
-                                'Authorization': `Bearer ${token}`
-                            }
+                        const response = await fetch('/auth/session', {
+                            credentials: 'include'
                         });
+                        const data = await response.json();
 
-                        if (response.ok) {
+                        if (data.authenticated && data.access_token) {
+                            this.accessToken = data.access_token;
                             return true;
                         }
                     } catch (error) {
@@ -850,7 +845,7 @@
                 },
 
                 handleAuthFailure() {
-                    localStorage.removeItem('token');
+                    this.accessToken = null;
                     if (this.ws) {
                         this.ws.close();
                     }
@@ -876,15 +871,15 @@
                 },
                 
                 connectWebSocket() {
-                    const token = localStorage.getItem('token');
-                    if (!token) {
+                    if (!this.accessToken) {
                         this.handleAuthFailure();
                         return;
                     }
                     
                     this.wsStatus = 'connecting';
+                    const wsToken = this.accessToken;
                     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-                    const wsUrl = `${protocol}//${window.location.host}/ws?token=${token}`;
+                    const wsUrl = `${protocol}//${window.location.host}/ws?token=${wsToken}`;
                     
                     this.ws = new WebSocket(wsUrl);
                     
@@ -983,8 +978,7 @@
                 },
                 
                 async apiCall(endpoint, options = {}) {
-                    const token = localStorage.getItem('token');
-                    if (!token) {
+                    if (!this.accessToken) {
                         this.handleAuthFailure();
                         throw new Error('Unauthorized');
                     }
@@ -993,13 +987,23 @@
 
                     const response = await fetch(endpoint, {
                         ...restOptions,
+                        credentials: 'include',
                         headers: {
-                            'Authorization': `Bearer ${token}`,
+                            'Authorization': `Bearer ${this.accessToken}`,
                             ...headers
                         },
                     });
                     
                     if (response.status === 401 || response.status === 403) {
+                        const refreshResp = await fetch('/auth/refresh', {
+                            method: 'POST',
+                            credentials: 'include'
+                        });
+                        if (refreshResp.ok) {
+                            const refreshData = await refreshResp.json();
+                            this.accessToken = refreshData.access_token;
+                            return this.apiCall(endpoint, options);
+                        }
                         this.handleAuthFailure();
                         throw new Error('Unauthorized');
                     }
@@ -1406,7 +1410,15 @@
                     return new Date(dateStr).toLocaleDateString();
                 },
                 
-                logout() {
+                async logout() {
+                    try {
+                        await fetch('/auth/logout', {
+                            method: 'POST',
+                            credentials: 'include'
+                        });
+                    } catch (e) {
+                        console.error('Logout error:', e);
+                    }
                     this.handleAuthFailure();
                 }
             }

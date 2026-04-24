@@ -222,31 +222,23 @@
             
             mounted() {
                 lucide.createIcons();
-
                 this.redirectIfSessionIsValid();
             },
             
             methods: {
                 async redirectIfSessionIsValid() {
-                    const token = localStorage.getItem('token');
-                    if (!token) return;
-
                     try {
-                        const response = await fetch('/auth/user', {
-                            headers: {
-                                'Authorization': `Bearer ${token}`
-                            }
+                        const response = await fetch('/auth/session', {
+                            credentials: 'include'
                         });
+                        const data = await response.json();
 
-                        if (response.ok) {
+                        if (data.authenticated) {
                             window.location.href = '/dashboard';
-                            return;
                         }
                     } catch (error) {
                         console.error('Session validation error:', error);
                     }
-
-                    localStorage.removeItem('token');
                 },
 
                 async handleLogin() {
@@ -261,6 +253,7 @@
                             headers: {
                                 'Content-Type': 'application/json',
                             },
+                            credentials: 'include',
                             body: JSON.stringify({
                                 username: this.username.trim(),
                                 password: this.password
@@ -269,9 +262,7 @@
                         
                         if (response.ok) {
                             const data = await response.json();
-                            localStorage.setItem('token', data.access_token);
                             
-                            // Show success message briefly before redirect
                             this.error = 'Login successful! Redirecting...';
                             this.errorType = 'success';
                             this.$nextTick(() => lucide.createIcons());

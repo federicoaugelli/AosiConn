@@ -669,6 +669,44 @@ def recompute_trade_metrics(
     return updated
 
 
+# token CRUD
+def revoke_token(db: Session, jti: str, user_id: int, expires_at: datetime):
+    existing = (
+        db.query(models.RevokedToken)
+        .filter(models.RevokedToken.jti == jti)
+        .first()
+    )
+    if existing:
+        return existing
+
+    revoked = models.RevokedToken(
+        jti=jti,
+        user_id=user_id,
+        revoked_at=datetime.utcnow(),
+        expires_at=expires_at,
+    )
+    db.add(revoked)
+    db.commit()
+    db.refresh(revoked)
+    return revoked
+
+
+def is_token_revoked(db: Session, jti: str) -> bool:
+    return (
+        db.query(models.RevokedToken)
+        .filter(models.RevokedToken.jti == jti)
+        .first()
+        is not None
+    )
+
+
+def cleanup_expired_revoked_tokens(db: Session):
+    db.query(models.RevokedToken).filter(
+        models.RevokedToken.expires_at <= datetime.utcnow()
+    ).delete()
+    db.commit()
+
+
 def update_drawdown(db: Session, record: models.DrawdownRecord, current_balance: float):
     """Update drawdown record with current balance"""
     if current_balance < record.trough_balance:

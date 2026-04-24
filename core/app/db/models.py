@@ -248,6 +248,18 @@ class StrategyPerformance(Base):
     last_trade_at = Column(DateTime, nullable=True)
 
 
+class RevokedToken(Base):
+    """Blacklisted refresh tokens for logout"""
+
+    __tablename__ = "revoked_tokens"
+
+    id = Column(Integer, primary_key=True, index=True)
+    jti = Column(String, unique=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    revoked_at = Column(DateTime, default=datetime.utcnow)
+    expires_at = Column(DateTime)
+
+
 class DrawdownRecord(Base):
     """Track drawdown periods for analysis"""
 
