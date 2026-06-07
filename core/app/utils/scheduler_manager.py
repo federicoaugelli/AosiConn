@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 # Heartbeat staleness threshold in seconds.
 # If a thread's last_heartbeat is older than this on startup, it is
 # considered crashed/stale and will NOT be auto-restored.
-STALE_HEARTBEAT_SECONDS = 300  # 5 minutes
+STALE_HEARTBEAT_SECONDS = 7200  # 5 minutes
 
 
 class Scheduler:
