@@ -212,14 +212,11 @@ async def delete_working_thread(
     db: Session = Depends(get_db),
 ) -> Dict:
     uid = get_user_id(user_id)
-    try:
-        db_thread = crud.get_thread(db, thread_id)
-        if db_thread is None or db_thread.user_id != uid:
-            raise HTTPException(status_code=404, detail="Thread not found")
+    db_thread = crud.get_thread(db, thread_id)
+    if db_thread is None or db_thread.user_id != uid:
+        raise HTTPException(status_code=404, detail="Thread not found")
 
-        scheduler_manager.stop_strategy(thread_id)
-        crud.delete_thread(db, thread_id)
+    scheduler_manager.stop_strategy(thread_id)
+    crud.delete_thread(db, thread_id)
 
-        return {"thread": "deleted"}
-    except Exception as e:
-        return {"error": str(e)}
+    return {"thread": "deleted"}
