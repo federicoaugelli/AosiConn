@@ -25,7 +25,7 @@ class Scheduler:
             job_defaults={
                 # One instance at a time — prevents a slow job from stacking.
                 "max_instances": 1,
-                "misfire_grace_time": 30,
+                "misfire_grace_time": 300,
             },
         )
         # Map thread_id → strategy instance so we can update live jobs (HIGH #12)
