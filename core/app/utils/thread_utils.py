@@ -84,7 +84,7 @@ class ThreadTemplate:
             module = importlib.import_module(f"exchange.{exchange}")
             exchange_class = getattr(module, "Exchange")
             client = exchange_class(
-                api_key=key.api_key, api_secret=key.api_secret, symbol=pair
+                api_key=key.api_key, api_secret=key.api_secret, symbol=pair, testnet=False
             )
             return client
         except Exception as e:

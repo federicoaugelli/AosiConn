@@ -15,7 +15,7 @@ class Exchange:
         symbol: str,
         timeframe: str = "30m",
         limit: int = 50,
-        testnet: bool = True,
+        testnet: bool = False,
     ):
         self.api_key = api_key
         self.api_secret = api_secret
@@ -34,19 +34,19 @@ class Exchange:
         )
         if testnet:
             self.client.set_sandbox_mode(True)
-            # TESTNET WORKAROUND: ccxt v4.5.18 crashes in fetch_spot_markets() on
-            # testnet because some universe entries reference out-of-bounds token
-            # indices, causing None + '/' + str to raise TypeError. This breaks
-            # load_markets() and every method that depends on it.
-            # Fix: pre-load only swap (perp) markets, skipping the broken spot path.
-            # This is harmless since we only trade perps (USDC:USDC settle format).
-            # Remove once ccxt fixes the bug upstream.
-            swap_markets = self.client.fetch_swap_markets({})
-            self.client.markets = {m["symbol"]: m for m in swap_markets}
-            self.client.markets_by_id = {m["id"]: m for m in swap_markets}
-            self.client.markets_loaded = True
+        # WORKAROUND: ccxt v4.5.18 crashes in fetch_spot_markets() on mainnet
+        # AND testnet because some universe entries reference out-of-bounds
+        # token indices, causing None + '/' + str to raise TypeError. This
+        # breaks load_markets() and every method that depends on it.
+        # Fix: pre-load only swap (perp) markets, skipping the broken spot path.
+        # This is harmless since we only trade perps (USDC:USDC settle format).
+        swap_markets = self.client.fetch_swap_markets({})
+        self.client.markets = {m["symbol"]: m for m in swap_markets}
+        self.client.markets_by_id = {m["id"]: m for m in swap_markets}
+        self.client.markets_loaded = True
         logger.info(f"Hyperliquid exchange initialized with symbol: {self.symbol}")
-        self.decimals = int(self.get_decimals())
+        decimals = self.get_decimals()
+        self.decimals = int(decimals) if decimals is not None else 0
 
     def _handle_error(self, operation: str, error: Exception) -> None:
         """Centralized error handling with logging"""
@@ -261,11 +261,7 @@ class Exchange:
     def get_ticker(self) -> Optional[float]:
         """Get current mark price"""
         try:
-            # On testnet, ccxt's fetch_tickers() internally calls fetch_markets()
-            # which includes fetch_spot_markets() -- broken on testnet (see __init__).
-            # Passing type='swap' routes it to fetch_swap_markets() only, avoiding
-            # the crash. On mainnet this param is not needed but is harmless.
-            params = {"type": "swap"} if self.testnet else {}
+            params = {"type": "swap"}
             ticker = self.client.fetch_tickers([self.symbol], params=params)
             if self.symbol not in ticker:
                 logger.error(f"Symbol {self.symbol} not found in ticker response.")
