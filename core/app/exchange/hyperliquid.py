@@ -1,6 +1,7 @@
 import ccxt
 import pandas as pd
 import logging
+import requests
 from typing import Optional, Tuple, Dict, Any
 
 logging.basicConfig(level=logging.INFO)
@@ -52,11 +53,58 @@ class Exchange:
         """Centralized error handling with logging"""
         logger.error(f"Error in {operation} for {self.symbol}: {str(error)}")
 
+    def _fetch_spot_balance(self) -> Optional[float]:
+        """Fetch USDC spot balance available for trading from Hyperliquid REST API.
+        
+        On unified accounts, Hyperliquid pools spot + perp into a single
+        collateral pool.  ccxt's fetch_balance() only returns the perp side,
+        missing the spot USDC that can be used as margin.
+        """
+        try:
+            base_url = (
+                "https://api.hyperliquid-testnet.xyz/info"
+                if self.testnet
+                else "https://api.hyperliquid.xyz/info"
+            )
+            payload = {"type": "spotClearinghouseState", "user": self.api_key}
+            r = requests.post(base_url, json=payload, timeout=10)
+            r.raise_for_status()
+            data = r.json()
+            for b in data.get("balances", []):
+                if b.get("coin") == "USDC":
+                    total = float(b.get("total", 0) or 0)
+                    hold = float(b.get("hold", 0) or 0)
+                    available = max(0.0, total - hold)
+                    if available > 0:
+                        logger.debug(
+                            f"Spot USDC: total={total:.2f} hold={hold:.2f} "
+                            f"available={available:.2f}"
+                        )
+                    return available
+            return 0.0
+        except Exception:
+            return 0.0
+
     def get_balance(self) -> Optional[Tuple[float, float, float]]:
-        """Returns (total, used, free) USDC balance"""
+        """Returns (total, used, free) USDC balance (spot + perp merged)."""
         try:
             balance = self.client.fetch_balance()["USDC"]
-            return balance["total"], balance["used"], balance["free"]
+            perp_total = float(balance.get("total", 0) or 0)
+            perp_used = float(balance.get("used", 0) or 0)
+            perp_free = float(balance.get("free", 0) or 0)
+
+            spot_avail = self._fetch_spot_balance()
+
+            total = perp_total + spot_avail
+            free = perp_free + spot_avail
+            used = perp_used
+
+            logger.debug(
+                f"Balance (merged): total={total:.2f} used={used:.2f} "
+                f"free={free:.2f} (perp={perp_total:.2f}/{perp_used:.2f}/{perp_free:.2f} "
+                f"+ spot_avail={spot_avail:.2f})"
+            )
+            return total, used, free
         except Exception as e:
             self._handle_error("get_balance", e)
             return None
