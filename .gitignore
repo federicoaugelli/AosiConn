@@ -18,3 +18,4 @@ aosiconn.db
 __pycache__
 core/app/db/aosiconn.db
 core/app/logger/logfile.log
+tests/

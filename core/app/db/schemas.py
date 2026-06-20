@@ -150,7 +150,7 @@ class insert_strategy(BaseModel):
     pair: str
     exchange: str = "hyperliquid"
     qty: float  # float to support fractional amounts (e.g. 0.001 BTC)
-    leverage: int
+    leverage: int = Field(ge=1, le=20)
     message: str = ""
 
 
@@ -158,7 +158,7 @@ class update_strategy(BaseModel):
     thread_id: int
     pair: Optional[str] = None
     qty: Optional[float] = None  # float to support fractional amounts
-    leverage: Optional[int] = None
+    leverage: Optional[int] = Field(default=None, ge=1, le=20)
     message: Optional[str] = None
 
 

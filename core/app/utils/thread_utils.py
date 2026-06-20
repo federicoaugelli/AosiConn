@@ -136,20 +136,28 @@ class ThreadTemplate:
         entry_fee=0.0,
         slippage=0.0,
         metadata=None,
+        leverage=None,
     ):
-        """Create a new trade. Refuses if a trade is already open."""
+        """Create a new trade. Refuses if a trade is already open.
+
+        If ``leverage`` is provided it overrides ``self.leverage`` for the
+        record, so strategies that pick leverage dynamically (e.g. AgentTeam)
+        can persist the actual value used on the exchange.
+        """
         if self.current_trade_id is not None:
             logger.warning(
                 f"Trade {self.current_trade_id} is already open — skipping create_trade"
             )
             return None
 
+        effective_leverage = int(leverage) if leverage is not None else self.leverage
+
         try:
             trade_data = schemas.TradeCreate(
                 exchange=self.exchange,
                 pair=self.pair,
                 qty=float(qty) if qty is not None else self.qty,
-                leverage=self.leverage,
+                leverage=effective_leverage,
                 action=action,
                 strategy=self.strategy_name,
                 entry_price=float(entry_price),

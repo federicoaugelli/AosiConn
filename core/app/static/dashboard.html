@@ -670,7 +670,8 @@
                         </div>
                         <div>
                             <label class="block text-sm text-gray-400 mb-1">Leverage</label>
-                            <input v-model="newInstance.leverage" type="number" required 
+                            <input v-model="newInstance.leverage" type="number" required
+                                   min="1" max="20" step="1"
                                    placeholder="1" class="input-field w-full px-3 py-2 rounded-lg">
                         </div>
                     </div>
