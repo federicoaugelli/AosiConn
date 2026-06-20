@@ -2,7 +2,7 @@
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Login - AosiConn Trading</title>
     
     <!-- Tailwind CSS -->
@@ -32,66 +32,154 @@
     
     <style>
         [v-cloak] { display: none; }
-        
-        .glass-panel {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+
+        /* Liquid Glass: Layer 0 container */
+        .glass {
+            position: relative;
+            border-radius: 28px;
+            overflow: hidden;
         }
-        
-        .gradient-bg {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 51, 234, 0.1) 100%);
+        .glass__refract {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            backdrop-filter: blur(14px) url(#liquid-glass-panel) brightness(1.06) saturate(1.3);
+            -webkit-backdrop-filter: blur(14px) url(#liquid-glass-panel) brightness(1.06) saturate(1.3);
+            isolation: isolate;
         }
-        
-        .input-field {
-            background: rgba(15, 23, 42, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
+        .glass__tint {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: rgba(30, 41, 59, 0.55);
         }
-        
-        .input-field:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-            outline: none;
+        .glass__specular {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            box-shadow:
+                inset 0  1px 0 rgba(255,255,255,0.6),
+                inset 0 -1px 0 rgba(255,255,255,0.08);
         }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-            transition: all 0.3s ease;
+        .glass__content {
+            position: relative;
+            z-index: 10;
         }
-        
-        .btn-primary:hover {
+
+        /* Liquid Glass: Buttons */
+        .glass-btn {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .glass-btn:hover {
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
         }
-        
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
+        .glass-btn:active {
+            transform: scale(0.97);
         }
-        
+        .glass-btn__refract {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            backdrop-filter: blur(16px) url(#liquid-glass-btn) brightness(1.12) saturate(1.4);
+            -webkit-backdrop-filter: blur(16px) url(#liquid-glass-btn) brightness(1.12) saturate(1.4);
+            isolation: isolate;
+        }
+        .glass-btn__tint {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(135deg, rgba(59,130,246,0.5) 0%, rgba(139,92,246,0.55) 100%);
+        }
+        .glass-btn__specular {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.7),
+                inset 0 -1px 0 rgba(255,255,255,0.1);
+        }
+        .glass-btn__content {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Input fields with slight glass */
+        .input-glass {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .input-glass__refract {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            backdrop-filter: blur(8px) url(#liquid-glass-btn) brightness(1.03);
+            -webkit-backdrop-filter: blur(8px) url(#liquid-glass-btn) brightness(1.03);
+            isolation: isolate;
+        }
+        .input-glass__tint {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+        .input-glass:focus-within .input-glass__tint {
+            border-color: rgba(59, 130, 246, 0.6);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        .input-glass__content {
+            position: relative;
+            z-index: 10;
+        }
+
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-5px); }
             75% { transform: translateX(5px); }
         }
-        
         .shake {
             animation: shake 0.5s ease;
         }
-        
+
         .fade-enter-active, .fade-leave-active {
             transition: opacity 0.3s ease;
         }
-        
         .fade-enter-from, .fade-leave-to {
             opacity: 0;
         }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            .glass { border-radius: 22px; }
+            .glass-btn { border-radius: 14px; }
+        }
     </style>
 </head>
-<body class="bg-dark-900 text-gray-100 min-h-screen flex items-center justify-center">
-    <div id="app" v-cloak class="w-full max-w-md px-4">
+<body class="bg-dark-900 text-gray-100 min-h-[100dvh] flex items-center justify-center p-4">
+    <!-- Hidden SVG filters -->
+    <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute;overflow:hidden">
+        <defs>
+            <filter id="liquid-glass-panel" color-interpolation-filters="sRGB" x="0%" y="0%" width="100%" height="100%">
+                <feImage result="dispMap" x="0" y="0" width="400" height="300" preserveAspectRatio="none"
+                    href="/static/lg-map-panel.png"/>
+                <feDisplacementMap in="SourceGraphic" in2="dispMap" scale="-38" xChannelSelector="R" yChannelSelector="G"/>
+            </filter>
+            <filter id="liquid-glass-btn" color-interpolation-filters="sRGB" x="0%" y="0%" width="100%" height="100%">
+                <feImage result="dispMap" x="0" y="0" width="300" height="56" preserveAspectRatio="none"
+                    href="/static/lg-map-button.png"/>
+                <feDisplacementMap in="SourceGraphic" in2="dispMap" scale="-28" xChannelSelector="R" yChannelSelector="G"/>
+            </filter>
+        </defs>
+    </svg>
+
+    <div id="app" v-cloak class="w-full max-w-md">
         <!-- Logo Section -->
         <div class="text-center mb-8">
             <div class="flex items-center justify-center mb-4">
@@ -103,85 +191,103 @@
             <p class="text-gray-400">Trading Dashboard</p>
         </div>
         
-        <!-- Login Card -->
-        <div class="glass-panel rounded-2xl p-8 shadow-2xl">
-            <div class="text-center mb-6">
-                <h2 class="text-2xl font-semibold text-white mb-2">Welcome Back</h2>
-                <p class="text-gray-400 text-sm">Sign in to access your trading dashboard</p>
-            </div>
-            
-            <!-- Error Alert -->
-            <transition name="fade">
-                <div v-if="error" :class="['mb-6 p-4 rounded-lg flex items-center', errorClass]">
-                    <i data-lucide="alert-circle" class="h-5 w-5 mr-2 flex-shrink-0"></i>
-                    <span class="text-sm">{{ error }}</span>
-                </div>
-            </transition>
-            
-            <!-- Login Form -->
-            <form @submit.prevent="handleLogin" class="space-y-6">
-                <!-- Username Field -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">
-                        Username
-                    </label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i data-lucide="user" class="h-5 w-5 text-gray-500"></i>
-                        </div>
-                        <input
-                            v-model="username"
-                            type="text"
-                            required
-                            placeholder="Enter your username"
-                            class="input-field w-full pl-10 pr-4 py-3 rounded-lg text-white placeholder-gray-500"
-                            :disabled="isLoading"
-                        >
-                    </div>
+        <!-- Login Card: Liquid Glass -->
+        <div class="glass shadow-2xl">
+            <div class="glass__refract"></div>
+            <div class="glass__tint"></div>
+            <div class="glass__specular"></div>
+            <div class="glass__content p-6 sm:p-8">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-semibold text-white mb-2">Welcome Back</h2>
+                    <p class="text-gray-400 text-sm">Sign in to access your trading dashboard</p>
                 </div>
                 
-                <!-- Password Field -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">
-                        Password
-                    </label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i data-lucide="lock" class="h-5 w-5 text-gray-500"></i>
-                        </div>
-                        <input
-                            v-model="password"
-                            :type="showPassword ? 'text' : 'password'"
-                            required
-                            placeholder="Enter your password"
-                            class="input-field w-full pl-10 pr-12 py-3 rounded-lg text-white placeholder-gray-500"
-                            :disabled="isLoading"
-                        >
-                        <button
-                            type="button"
-                            @click="showPassword = !showPassword"
-                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-300"
-                        >
-                            <i :data-lucide="showPassword ? 'eye-off' : 'eye'" class="h-5 w-5"></i>
-                        </button>
+                <!-- Error Alert -->
+                <transition name="fade">
+                    <div v-if="error" :class="['mb-6 p-4 rounded-lg flex items-center', errorClass]">
+                        <i data-lucide="alert-circle" class="h-5 w-5 mr-2 flex-shrink-0"></i>
+                        <span class="text-sm">{{ error }}</span>
                     </div>
-                </div>
+                </transition>
                 
-                <!-- Login Button -->
-                <button
-                    type="submit"
-                    :disabled="isLoading || !isValid"
-                    class="btn-primary w-full py-3 px-4 rounded-lg font-semibold text-white flex items-center justify-center"
-                >
-                    <i v-if="isLoading" data-lucide="loader-2" class="h-5 w-5 mr-2 animate-spin"></i>
-                    <i v-else data-lucide="log-in" class="h-5 w-5 mr-2"></i>
-                    {{ isLoading ? 'Signing in...' : 'Sign In' }}
-                </button>
-            </form>
-            
-            <!-- Footer -->
-            <div class="mt-6 text-center text-sm text-gray-500">
-                <p>Secure connection established</p>
+                <!-- Login Form -->
+                <form @submit.prevent="handleLogin" class="space-y-5">
+                    <!-- Username Field -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                            Username
+                        </label>
+                        <div class="input-glass">
+                            <div class="input-glass__refract"></div>
+                            <div class="input-glass__tint"></div>
+                            <div class="input-glass__content relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                                    <i data-lucide="user" class="h-5 w-5 text-gray-400"></i>
+                                </div>
+                                <input
+                                    v-model="username"
+                                    type="text"
+                                    required
+                                    placeholder="Enter your username"
+                                    class="w-full pl-10 pr-4 py-3 bg-transparent text-white placeholder-gray-500 outline-none relative z-10"
+                                    :disabled="isLoading"
+                                >
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Password Field -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                            Password
+                        </label>
+                        <div class="input-glass">
+                            <div class="input-glass__refract"></div>
+                            <div class="input-glass__tint"></div>
+                            <div class="input-glass__content relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                                    <i data-lucide="lock" class="h-5 w-5 text-gray-400"></i>
+                                </div>
+                                <input
+                                    v-model="password"
+                                    :type="showPassword ? 'text' : 'password'"
+                                    required
+                                    placeholder="Enter your password"
+                                    class="w-full pl-10 pr-12 py-3 bg-transparent text-white placeholder-gray-500 outline-none relative z-10"
+                                    :disabled="isLoading"
+                                >
+                                <button
+                                    type="button"
+                                    @click="showPassword = !showPassword"
+                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-200 z-10"
+                                >
+                                    <i :data-lucide="showPassword ? 'eye-off' : 'eye'" class="h-5 w-5"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Login Button: Liquid Glass -->
+                    <button
+                        type="submit"
+                        :disabled="isLoading || !isValid"
+                        class="glass-btn w-full text-white"
+                    >
+                        <div class="glass-btn__refract"></div>
+                        <div class="glass-btn__tint"></div>
+                        <div class="glass-btn__specular"></div>
+                        <div class="glass-btn__content py-3 px-4 flex items-center justify-center font-semibold relative z-10">
+                            <i v-if="isLoading" data-lucide="loader-2" class="h-5 w-5 mr-2 animate-spin"></i>
+                            <i v-else data-lucide="log-in" class="h-5 w-5 mr-2"></i>
+                            {{ isLoading ? 'Signing in...' : 'Sign In' }}
+                        </div>
+                    </button>
+                </form>
+                
+                <!-- Footer -->
+                <div class="mt-6 text-center text-sm text-gray-500">
+                    <p>Secure connection established</p>
+                </div>
             </div>
         </div>
         
@@ -290,7 +396,7 @@
                 },
                 
                 shakeForm() {
-                    const card = document.querySelector('.glass-panel');
+                    const card = document.querySelector('.glass');
                     card.classList.add('shake');
                     setTimeout(() => card.classList.remove('shake'), 500);
                 }
@@ -299,4 +405,3 @@
     </script>
 </body>
 </html>
-</content>

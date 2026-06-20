@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, BackgroundTasks
 from fastapi.routing import APIRoute
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 from routes import (
@@ -65,6 +66,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount static files for liquid glass displacement maps and other assets
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Include routers
 app.include_router(base.router, tags=["Status"])

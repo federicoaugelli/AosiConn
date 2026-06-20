@@ -2,7 +2,7 @@
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>AosiConn Trading Dashboard</title>
     
     <!-- Tailwind CSS -->
@@ -36,23 +36,201 @@
     
     <style>
         [v-cloak] { display: none; }
-        
-        .glass-panel {
+
+        /* ===== Liquid Glass: Panel ===== */
+        .glass {
+            position: relative;
+            border-radius: 22px;
+            overflow: hidden;
+        }
+        .glass__refract {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            backdrop-filter: blur(14px) url(#liquid-glass-panel) brightness(1.06) saturate(1.3);
+            -webkit-backdrop-filter: blur(14px) url(#liquid-glass-panel) brightness(1.06) saturate(1.3);
+            isolation: isolate;
+        }
+        .glass__tint {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: rgba(30, 41, 59, 0.55);
+        }
+        .glass__specular {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            box-shadow:
+                inset 0  1px 0 rgba(255,255,255,0.5),
+                inset 0 -1px 0 rgba(255,255,255,0.06);
+        }
+        .glass__content {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* ===== Liquid Glass: Card (metric cards, smaller panels) ===== */
+        .glass-card {
+            position: relative;
+            border-radius: 18px;
+            overflow: hidden;
+        }
+        .glass-card__refract {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            backdrop-filter: blur(12px) url(#liquid-glass-card) brightness(1.05) saturate(1.2);
+            -webkit-backdrop-filter: blur(12px) url(#liquid-glass-card) brightness(1.05) saturate(1.2);
+            isolation: isolate;
+        }
+        .glass-card__tint {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(135deg, rgba(59,130,246,0.12) 0%, rgba(147,51,234,0.12) 100%);
+        }
+        .glass-card__specular {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            box-shadow:
+                inset 0  1px 0 rgba(255,255,255,0.4),
+                inset 0 -1px 0 rgba(255,255,255,0.04);
+        }
+        .glass-card__content {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* ===== Liquid Glass: Header bar ===== */
+        .glass-header {
+            position: relative;
+            overflow: hidden;
+        }
+        .glass-header__refract {
+            position: absolute;
+            inset: 0;
+            backdrop-filter: blur(16px) url(#liquid-glass-header) brightness(1.04) saturate(1.2);
+            -webkit-backdrop-filter: blur(16px) url(#liquid-glass-header) brightness(1.04) saturate(1.2);
+            isolation: isolate;
+        }
+        .glass-header__tint {
+            position: absolute;
+            inset: 0;
+            background: rgba(30, 41, 59, 0.65);
+        }
+        .glass-header__specular {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.55),
+                inset 0 -1px 0 rgba(255,255,255,0.05);
+        }
+        .glass-header__content {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* ===== Liquid Glass: Buttons ===== */
+        .glass-btn {
+            position: relative;
+            border-radius: 14px;
+            overflow: hidden;
+            transition: transform 0.2s ease;
+        }
+        .glass-btn:hover {
+            transform: translateY(-1px);
+        }
+        .glass-btn:active {
+            transform: scale(0.97);
+        }
+        .glass-btn__refract {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            backdrop-filter: blur(14px) url(#liquid-glass-btn) brightness(1.1) saturate(1.35);
+            -webkit-backdrop-filter: blur(14px) url(#liquid-glass-btn) brightness(1.1) saturate(1.35);
+            isolation: isolate;
+        }
+        .glass-btn__tint {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(135deg, rgba(59,130,246,0.45) 0%, rgba(139,92,246,0.5) 100%);
+        }
+        .glass-btn__specular {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.65),
+                inset 0 -1px 0 rgba(255,255,255,0.08);
+        }
+        .glass-btn__content {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* ===== Input fields with glass ===== */
+        .input-glass {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .input-glass__refract {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            backdrop-filter: blur(6px) url(#liquid-glass-btn) brightness(1.02);
+            -webkit-backdrop-filter: blur(6px) url(#liquid-glass-btn) brightness(1.02);
+            isolation: isolate;
+        }
+        .input-glass__tint {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
             background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.2s;
         }
-        
-        .metric-card {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 51, 234, 0.1) 100%);
-            border: 1px solid rgba(59, 130, 246, 0.2);
+        .input-glass:focus-within .input-glass__tint {
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
         }
-        
-        .metric-positive { color: #10b981; }
-        .metric-negative { color: #ef4444; }
-        
+        .input-glass__content {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* ===== Mobile Bottom Navigation ===== */
+        .mobile-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            padding-bottom: env(safe-area-inset-bottom, 8px);
+        }
+        @media (min-width: 1024px) {
+            .mobile-nav {
+                display: none;
+            }
+        }
+        /* Desktop tab nav: hide on mobile, show on desktop */
+        @media (max-width: 1023px) {
+            .desktop-nav {
+                display: none;
+            }
+        }
+
+        /* ===== Utility ===== */
         .chart-container { position: relative; height: 300px; }
-        
+
         .ws-indicator {
             width: 8px;
             height: 8px;
@@ -60,101 +238,99 @@
             display: inline-block;
             margin-right: 8px;
         }
-        
         .ws-connected {
             background-color: #10b981;
             box-shadow: 0 0 10px #10b981;
         }
-        
         .ws-disconnected { background-color: #ef4444; }
-        
         .ws-connecting {
             background-color: #f59e0b;
             animation: pulse 1.5s infinite;
         }
-        
+
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
-        
+
+        .metric-positive { color: #10b981; }
+        .metric-negative { color: #ef4444; }
+
         .heatmap-cell { transition: all 0.3s ease; }
         .heatmap-cell:hover { transform: scale(1.05); }
-        
-        .tab-active {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(147, 51, 234, 0.2) 100%);
-            border-color: rgba(59, 130, 246, 0.5);
-        }
-        
-        .tab-inactive {
-            background: transparent;
-            border-color: transparent;
-        }
-        
-        .tab-inactive:hover { background: rgba(255, 255, 255, 0.05); }
-        
-        .input-field {
-            background: rgba(30, 41, 59, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
-            transition: all 0.2s;
-        }
-        
-        .input-field:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-        
+
         .strategy-card {
-            background: rgba(30, 41, 59, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.3s ease;
         }
-        
         .strategy-card:hover {
-            border-color: rgba(59, 130, 246, 0.3);
             transform: translateY(-2px);
         }
-        
+
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
         }
-        
         ::-webkit-scrollbar-track { background: #1e293b; }
-        
         ::-webkit-scrollbar-thumb {
             background: #475569;
             border-radius: 4px;
         }
-        
         ::-webkit-scrollbar-thumb:hover { background: #64748b; }
-        
+
         .toast { animation: slideIn 0.3s ease-out; }
-        
         @keyframes slideIn {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
-        
+
         .status-running {
             background: rgba(16, 185, 129, 0.2);
             color: #10b981;
         }
-        
         .status-stopped {
             background: rgba(239, 68, 68, 0.2);
             color: #ef4444;
         }
-        
         .status-paused {
             background: rgba(245, 158, 11, 0.2);
             color: #f59e0b;
         }
+
+        /* Responsive main content padding for mobile bottom nav */
+        @media (max-width: 1023px) {
+            main {
+                padding-bottom: calc(80px + env(safe-area-inset-bottom, 8px));
+            }
+        }
     </style>
 </head>
-<body class="bg-dark-900 text-gray-100 min-h-screen">
+<body class="bg-dark-900 text-gray-100 min-h-[100dvh]">
+    <!-- Hidden SVG filters -->
+    <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute;overflow:hidden">
+        <defs>
+            <filter id="liquid-glass-panel" color-interpolation-filters="sRGB" x="0%" y="0%" width="100%" height="100%">
+                <feImage result="dispMap" x="0" y="0" width="400" height="300" preserveAspectRatio="none"
+                    href="/static/lg-map-panel.png"/>
+                <feDisplacementMap in="SourceGraphic" in2="dispMap" scale="-38" xChannelSelector="R" yChannelSelector="G"/>
+            </filter>
+            <filter id="liquid-glass-card" color-interpolation-filters="sRGB" x="0%" y="0%" width="100%" height="100%">
+                <feImage result="dispMap" x="0" y="0" width="200" height="150" preserveAspectRatio="none"
+                    href="/static/lg-map-card.png"/>
+                <feDisplacementMap in="SourceGraphic" in2="dispMap" scale="-24" xChannelSelector="R" yChannelSelector="G"/>
+            </filter>
+            <filter id="liquid-glass-btn" color-interpolation-filters="sRGB" x="0%" y="0%" width="100%" height="100%">
+                <feImage result="dispMap" x="0" y="0" width="300" height="56" preserveAspectRatio="none"
+                    href="/static/lg-map-button.png"/>
+                <feDisplacementMap in="SourceGraphic" in2="dispMap" scale="-28" xChannelSelector="R" yChannelSelector="G"/>
+            </filter>
+            <filter id="liquid-glass-header" color-interpolation-filters="sRGB" x="0%" y="0%" width="100%" height="100%">
+                <feImage result="dispMap" x="0" y="0" width="300" height="56" preserveAspectRatio="none"
+                    href="/static/lg-map-button.png"/>
+                <feDisplacementMap in="SourceGraphic" in2="dispMap" scale="-22" xChannelSelector="R" yChannelSelector="G"/>
+            </filter>
+        </defs>
+    </svg>
+
     <div id="app" v-cloak>
         <!-- Toast Notifications -->
         <div class="fixed top-20 right-4 z-50 space-y-2">
@@ -167,9 +343,12 @@
             </div>
         </div>
 
-        <!-- Header -->
-        <header class="glass-panel sticky top-0 z-40 border-b border-gray-700">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- ===== HEADER: Liquid Glass ===== -->
+        <header class="glass-header sticky top-0 z-40 border-b border-white/5">
+            <div class="glass-header__refract"></div>
+            <div class="glass-header__tint"></div>
+            <div class="glass-header__specular"></div>
+            <div class="glass-header__content max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center h-16">
                     <div class="flex items-center space-x-4">
                         <div class="flex items-center">
@@ -178,28 +357,28 @@
                                 AosiConn
                             </h1>
                         </div>
-                        <span class="text-sm text-gray-400">Trading Dashboard</span>
+                        <span class="text-sm text-gray-400 hidden sm:inline">Trading Dashboard</span>
                     </div>
                     
-                    <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2 sm:space-x-4">
                         <div class="flex items-center text-sm">
                             <span :class="['ws-indicator', wsStatusClass]"></span>
-                            <span class="text-gray-400">{{ wsStatusText }}</span>
+                            <span class="text-gray-400 hidden sm:inline">{{ wsStatusText }}</span>
                         </div>
                         
                         <select v-model="selectedExchange" 
                                 @change="refreshAllData"
-                                class="bg-dark-800 border border-gray-600 rounded-lg px-3 py-1 text-sm focus:outline-none focus:border-blue-500">
+                                class="bg-dark-800/70 border border-gray-600/50 rounded-lg px-2 sm:px-3 py-1 text-sm focus:outline-none focus:border-blue-500">
                             <option value="hyperliquid">Hyperliquid</option>
                         </select>
                         
                         <button @click="refreshCurrentTab" 
                                 :disabled="isLoading"
-                                class="p-2 rounded-lg bg-dark-800 hover:bg-dark-700 transition-colors">
+                                class="p-2 rounded-lg bg-dark-800/60 hover:bg-dark-700/80 transition-colors">
                             <i data-lucide="refresh-cw" :class="['h-4 w-4', isLoading ? 'animate-spin' : '']"></i>
                         </button>
                         
-                        <button @click="logout" class="p-2 rounded-lg bg-red-600/20 text-red-400 hover:bg-red-600/30 transition-colors">
+                        <button @click="logout" class="p-2 rounded-lg bg-red-600/15 text-red-400 hover:bg-red-600/25 transition-colors">
                             <i data-lucide="log-out" class="h-4 w-4"></i>
                         </button>
                     </div>
@@ -207,31 +386,31 @@
             </div>
         </header>
 
-        <!-- Tab Navigation -->
-        <nav class="bg-dark-800 border-b border-gray-700">
+        <!-- ===== DESKTOP TAB NAVIGATION (hidden on mobile) ===== -->
+        <nav class="desktop-nav bg-dark-800/60 border-b border-gray-700/50">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex space-x-1 py-2">
                     <button @click="currentTab = 'overview'" 
                             :class="['px-4 py-2 rounded-lg text-sm font-medium transition-all border', 
-                                     currentTab === 'overview' ? 'tab-active text-blue-400' : 'tab-inactive text-gray-400 hover:text-gray-200']">
+                                     currentTab === 'overview' ? 'bg-blue-500/15 border-blue-500/40 text-blue-400' : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5']">
                         <i data-lucide="layout-dashboard" class="h-4 w-4 inline mr-2"></i>
                         Overview
                     </button>
                     <button @click="currentTab = 'trades'"
                             :class="['px-4 py-2 rounded-lg text-sm font-medium transition-all border', 
-                                     currentTab === 'trades' ? 'tab-active text-blue-400' : 'tab-inactive text-gray-400 hover:text-gray-200']">
+                                     currentTab === 'trades' ? 'bg-blue-500/15 border-blue-500/40 text-blue-400' : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5']">
                         <i data-lucide="list" class="h-4 w-4 inline mr-2"></i>
                         Trades
                     </button>
                     <button @click="currentTab = 'strategies'"
                             :class="['px-4 py-2 rounded-lg text-sm font-medium transition-all border', 
-                                     currentTab === 'strategies' ? 'tab-active text-blue-400' : 'tab-inactive text-gray-400 hover:text-gray-200']">
+                                     currentTab === 'strategies' ? 'bg-blue-500/15 border-blue-500/40 text-blue-400' : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5']">
                         <i data-lucide="cpu" class="h-4 w-4 inline mr-2"></i>
                         Strategies
                     </button>
                     <button @click="currentTab = 'apikeys'"
                             :class="['px-4 py-2 rounded-lg text-sm font-medium transition-all border', 
-                                     currentTab === 'apikeys' ? 'tab-active text-blue-400' : 'tab-inactive text-gray-400 hover:text-gray-200']">
+                                     currentTab === 'apikeys' ? 'bg-blue-500/15 border-blue-500/40 text-blue-400' : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5']">
                         <i data-lucide="key" class="h-4 w-4 inline mr-2"></i>
                         API Keys
                     </button>
@@ -239,7 +418,8 @@
             </div>
         </nav>
 
-        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- ===== MAIN CONTENT ===== -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
             <!-- Connection Error Alert -->
             <div v-if="connectionError" class="mb-6 p-4 bg-red-900/30 border border-red-500/50 rounded-lg">
                 <div class="flex items-center">
@@ -251,175 +431,221 @@
             <!-- Overview Tab -->
             <div v-if="currentTab === 'overview'">
                 <!-- Key Metrics Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                    <div class="metric-card rounded-xl p-6">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-gray-400 text-sm">Total P&L</span>
-                            <i data-lucide="trending-up" class="h-5 w-5 text-blue-400"></i>
+                <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 lg:mb-8">
+                    <div class="glass-card">
+                        <div class="glass-card__refract"></div>
+                        <div class="glass-card__tint"></div>
+                        <div class="glass-card__specular"></div>
+                        <div class="glass-card__content p-4 sm:p-5 lg:p-6">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-gray-400 text-xs sm:text-sm">Total P&amp;L</span>
+                                <i data-lucide="trending-up" class="h-4 w-4 sm:h-5 sm:w-5 text-blue-400"></i>
+                            </div>
+                            <div :class="['text-lg sm:text-xl lg:text-2xl font-bold', performance.total_pnl >= 0 ? 'metric-positive' : 'metric-negative']">
+                                ${{ formatNumber(performance.total_pnl) }}
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1">{{ performance.total_trades }} trades</div>
                         </div>
-                        <div :class="['text-2xl font-bold', performance.total_pnl >= 0 ? 'metric-positive' : 'metric-negative']">
-                            ${{ formatNumber(performance.total_pnl) }}
-                        </div>
-                        <div class="text-xs text-gray-500 mt-1">{{ performance.total_trades }} trades</div>
                     </div>
 
-                    <div class="metric-card rounded-xl p-6">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-gray-400 text-sm">Win Rate</span>
-                            <i data-lucide="target" class="h-5 w-5 text-purple-400"></i>
+                    <div class="glass-card">
+                        <div class="glass-card__refract"></div>
+                        <div class="glass-card__tint"></div>
+                        <div class="glass-card__specular"></div>
+                        <div class="glass-card__content p-4 sm:p-5 lg:p-6">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-gray-400 text-xs sm:text-sm">Win Rate</span>
+                                <i data-lucide="target" class="h-4 w-4 sm:h-5 sm:w-5 text-purple-400"></i>
+                            </div>
+                            <div class="text-lg sm:text-xl lg:text-2xl font-bold text-white">{{ performance.win_rate }}%</div>
+                            <div class="text-xs text-gray-500 mt-1">{{ performance.winning_trades }}W / {{ performance.losing_trades }}L</div>
                         </div>
-                        <div class="text-2xl font-bold text-white">{{ performance.win_rate }}%</div>
-                        <div class="text-xs text-gray-500 mt-1">{{ performance.winning_trades }}W / {{ performance.losing_trades }}L</div>
                     </div>
 
-                    <div class="metric-card rounded-xl p-6">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-gray-400 text-sm">Profit Factor</span>
-                            <i data-lucide="bar-chart-2" class="h-5 w-5 text-green-400"></i>
+                    <div class="glass-card">
+                        <div class="glass-card__refract"></div>
+                        <div class="glass-card__tint"></div>
+                        <div class="glass-card__specular"></div>
+                        <div class="glass-card__content p-4 sm:p-5 lg:p-6">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-gray-400 text-xs sm:text-sm">Profit Factor</span>
+                                <i data-lucide="bar-chart-2" class="h-4 w-4 sm:h-5 sm:w-5 text-green-400"></i>
+                            </div>
+                            <div class="text-lg sm:text-xl lg:text-2xl font-bold text-white">{{ performance.profit_factor }}</div>
+                            <div class="text-xs text-gray-500 mt-1">Avg Win: ${{ formatNumber(performance.avg_win) }}</div>
                         </div>
-                        <div class="text-2xl font-bold text-white">{{ performance.profit_factor }}</div>
-                        <div class="text-xs text-gray-500 mt-1">Avg Win: ${{ formatNumber(performance.avg_win) }}</div>
                     </div>
 
-                    <div class="metric-card rounded-xl p-6">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-gray-400 text-sm">Max Drawdown</span>
-                            <i data-lucide="trending-down" class="h-5 w-5 text-red-400"></i>
+                    <div class="glass-card">
+                        <div class="glass-card__refract"></div>
+                        <div class="glass-card__tint"></div>
+                        <div class="glass-card__specular"></div>
+                        <div class="glass-card__content p-4 sm:p-5 lg:p-6">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-gray-400 text-xs sm:text-sm">Max Drawdown</span>
+                                <i data-lucide="trending-down" class="h-4 w-4 sm:h-5 sm:w-5 text-red-400"></i>
+                            </div>
+                            <div class="text-lg sm:text-xl lg:text-2xl font-bold metric-negative">{{ performance.max_drawdown_pct }}%</div>
+                            <div class="text-xs text-gray-500 mt-1">${{ formatNumber(performance.max_drawdown) }}</div>
                         </div>
-                        <div class="text-2xl font-bold metric-negative">{{ performance.max_drawdown_pct }}%</div>
-                        <div class="text-xs text-gray-500 mt-1">${{ formatNumber(performance.max_drawdown) }}</div>
                     </div>
                 </div>
 
                 <!-- Charts Row 1 -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                    <div class="glass-panel rounded-xl p-6">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold text-white">Equity Curve</h3>
-                            <i data-lucide="line-chart" class="h-5 w-5 text-gray-400"></i>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="equityChart"></canvas>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
+                    <div class="glass">
+                        <div class="glass__refract"></div>
+                        <div class="glass__tint"></div>
+                        <div class="glass__specular"></div>
+                        <div class="glass__content p-4 sm:p-5 lg:p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-base sm:text-lg font-semibold text-white">Equity Curve</h3>
+                                <i data-lucide="line-chart" class="h-4 w-4 sm:h-5 sm:w-5 text-gray-400"></i>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="equityChart"></canvas>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="glass-panel rounded-xl p-6">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold text-white">Drawdown</h3>
-                            <i data-lucide="activity" class="h-5 w-5 text-gray-400"></i>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="drawdownChart"></canvas>
+                    <div class="glass">
+                        <div class="glass__refract"></div>
+                        <div class="glass__tint"></div>
+                        <div class="glass__specular"></div>
+                        <div class="glass__content p-4 sm:p-5 lg:p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-base sm:text-lg font-semibold text-white">Drawdown</h3>
+                                <i data-lucide="activity" class="h-4 w-4 sm:h-5 sm:w-5 text-gray-400"></i>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="drawdownChart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Charts Row 2 -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                    <!-- Daily P&L -->
-                    <div class="glass-panel rounded-xl p-6">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold text-white">Daily P&L</h3>
-                            <i data-lucide="calendar" class="h-5 w-5 text-gray-400"></i>
-                        </div>
-                        <div class="chart-container" style="height: 250px;">
-                            <canvas id="dailyPnlChart"></canvas>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
+                    <div class="glass">
+                        <div class="glass__refract"></div>
+                        <div class="glass__tint"></div>
+                        <div class="glass__specular"></div>
+                        <div class="glass__content p-4 sm:p-5 lg:p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-base sm:text-lg font-semibold text-white">Daily P&amp;L</h3>
+                                <i data-lucide="calendar" class="h-4 w-4 sm:h-5 sm:w-5 text-gray-400"></i>
+                            </div>
+                            <div class="chart-container" style="height: 250px;">
+                                <canvas id="dailyPnlChart"></canvas>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Strategy Performance -->
-                    <div class="glass-panel rounded-xl p-6 lg:col-span-2">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold text-white">Strategy Performance</h3>
-                            <i data-lucide="layers" class="h-5 w-5 text-gray-400"></i>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-sm">
-                                <thead>
-                                    <tr class="text-gray-400 border-b border-gray-700">
-                                        <th class="text-left py-2">Strategy</th>
-                                        <th class="text-right py-2">Trades</th>
-                                        <th class="text-right py-2">Win Rate</th>
-                                        <th class="text-right py-2">P&L</th>
-                                        <th class="text-right py-2">Profit Factor</th>
-                                        <th class="text-right py-2">Streak</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="strategy in strategyPerformance" :key="strategy.strategy" 
-                                        class="border-b border-gray-800 hover:bg-dark-800/50">
-                                        <td class="py-3 font-medium">{{ strategy.strategy }}</td>
-                                        <td class="text-right py-3">{{ strategy.total_trades }}</td>
-                                        <td class="text-right py-3">{{ strategy.win_rate }}%</td>
-                                        <td :class="['text-right py-3', strategy.total_pnl >= 0 ? 'metric-positive' : 'metric-negative']">
-                                            ${{ formatNumber(strategy.total_pnl) }}
-                                        </td>
-                                        <td class="text-right py-3">{{ strategy.profit_factor }}</td>
-                                        <td class="text-right py-3">
-                                            <span :class="strategy.current_streak > 0 ? 'metric-positive' : strategy.current_streak < 0 ? 'metric-negative' : 'text-gray-400'">
-                                                {{ strategy.current_streak > 0 ? '+' : '' }}{{ strategy.current_streak }}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                    <div class="glass lg:col-span-2">
+                        <div class="glass__refract"></div>
+                        <div class="glass__tint"></div>
+                        <div class="glass__specular"></div>
+                        <div class="glass__content p-4 sm:p-5 lg:p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-base sm:text-lg font-semibold text-white">Strategy Performance</h3>
+                                <i data-lucide="layers" class="h-4 w-4 sm:h-5 sm:w-5 text-gray-400"></i>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm">
+                                    <thead>
+                                        <tr class="text-gray-400 border-b border-gray-700/50">
+                                            <th class="text-left py-2">Strategy</th>
+                                            <th class="text-right py-2">Trades</th>
+                                            <th class="text-right py-2">Win Rate</th>
+                                            <th class="text-right py-2">P&amp;L</th>
+                                            <th class="text-right py-2">Profit Factor</th>
+                                            <th class="text-right py-2">Streak</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="strategy in strategyPerformance" :key="strategy.strategy" 
+                                            class="border-b border-gray-800 hover:bg-white/5">
+                                            <td class="py-3 font-medium">{{ strategy.strategy }}</td>
+                                            <td class="text-right py-3">{{ strategy.total_trades }}</td>
+                                            <td class="text-right py-3">{{ strategy.win_rate }}%</td>
+                                            <td :class="['text-right py-3', strategy.total_pnl >= 0 ? 'metric-positive' : 'metric-negative']">
+                                                ${{ formatNumber(strategy.total_pnl) }}
+                                            </td>
+                                            <td class="text-right py-3">{{ strategy.profit_factor }}</td>
+                                            <td class="text-right py-3">
+                                                <span :class="strategy.current_streak > 0 ? 'metric-positive' : strategy.current_streak < 0 ? 'metric-negative' : 'text-gray-400'">
+                                                    {{ strategy.current_streak > 0 ? '+' : '' }}{{ strategy.current_streak }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Position Heatmap & Returns -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                    <!-- Returns Summary -->
-                    <div class="glass-panel rounded-xl p-6">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold text-white">Returns</h3>
-                            <i data-lucide="percent" class="h-5 w-5 text-gray-400"></i>
-                        </div>
-                        <div class="space-y-4">
-                            <div class="flex justify-between items-center p-3 bg-dark-800/50 rounded-lg">
-                                <div>
-                                    <div class="text-sm text-gray-400">Daily</div>
-                                    <div class="text-xs text-gray-500">{{ returns.daily.trades }} trades</div>
-                                </div>
-                                <div :class="['text-lg font-bold', returns.daily.pnl >= 0 ? 'metric-positive' : 'metric-negative']">
-                                    {{ returns.daily.return_pct }}%
-                                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
+                    <div class="glass">
+                        <div class="glass__refract"></div>
+                        <div class="glass__tint"></div>
+                        <div class="glass__specular"></div>
+                        <div class="glass__content p-4 sm:p-5 lg:p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-base sm:text-lg font-semibold text-white">Returns</h3>
+                                <i data-lucide="percent" class="h-4 w-4 sm:h-5 sm:w-5 text-gray-400"></i>
                             </div>
-                            <div class="flex justify-between items-center p-3 bg-dark-800/50 rounded-lg">
-                                <div>
-                                    <div class="text-sm text-gray-400">Weekly</div>
-                                    <div class="text-xs text-gray-500">{{ returns.weekly.trades }} trades</div>
+                            <div class="space-y-3 sm:space-y-4">
+                                <div class="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+                                    <div>
+                                        <div class="text-sm text-gray-400">Daily</div>
+                                        <div class="text-xs text-gray-500">{{ returns.daily.trades }} trades</div>
+                                    </div>
+                                    <div :class="['text-base sm:text-lg font-bold', returns.daily.pnl >= 0 ? 'metric-positive' : 'metric-negative']">
+                                        {{ returns.daily.return_pct }}%
+                                    </div>
                                 </div>
-                                <div :class="['text-lg font-bold', returns.weekly.pnl >= 0 ? 'metric-positive' : 'metric-negative']">
-                                    {{ returns.weekly.return_pct }}%
+                                <div class="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+                                    <div>
+                                        <div class="text-sm text-gray-400">Weekly</div>
+                                        <div class="text-xs text-gray-500">{{ returns.weekly.trades }} trades</div>
+                                    </div>
+                                    <div :class="['text-base sm:text-lg font-bold', returns.weekly.pnl >= 0 ? 'metric-positive' : 'metric-negative']">
+                                        {{ returns.weekly.return_pct }}%
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="flex justify-between items-center p-3 bg-dark-800/50 rounded-lg">
-                                <div>
-                                    <div class="text-sm text-gray-400">Monthly</div>
-                                    <div class="text-xs text-gray-500">{{ returns.monthly.trades }} trades</div>
-                                </div>
-                                <div :class="['text-lg font-bold', returns.monthly.pnl >= 0 ? 'metric-positive' : 'metric-negative']">
-                                    {{ returns.monthly.return_pct }}%
+                                <div class="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+                                    <div>
+                                        <div class="text-sm text-gray-400">Monthly</div>
+                                        <div class="text-xs text-gray-500">{{ returns.monthly.trades }} trades</div>
+                                    </div>
+                                    <div :class="['text-base sm:text-lg font-bold', returns.monthly.pnl >= 0 ? 'metric-positive' : 'metric-negative']">
+                                        {{ returns.monthly.return_pct }}%
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Position Heatmap -->
-                    <div class="glass-panel rounded-xl p-6 lg:col-span-2">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold text-white">Position Heatmap (24h)</h3>
-                            <i data-lucide="map" class="h-5 w-5 text-gray-400"></i>
-                        </div>
-                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                            <div v-for="item in positionHeatmap" :key="item.pair"
-                                 class="heatmap-cell bg-dark-800/50 rounded-lg p-3 cursor-pointer"
-                                 :style="{ backgroundColor: getHeatmapColor(item.avg_position_size) }">
-                                <div class="text-sm font-medium text-white">{{ item.pair }}</div>
-                                <div class="text-xs text-gray-400 mt-1">Avg: {{ formatNumber(item.avg_position_size) }}</div>
-                                <div :class="['text-xs mt-1', item.unrealized_pnl >= 0 ? 'metric-positive' : 'metric-negative']">
-                                    ${{ formatNumber(item.unrealized_pnl) }}
+                    <div class="glass lg:col-span-2">
+                        <div class="glass__refract"></div>
+                        <div class="glass__tint"></div>
+                        <div class="glass__specular"></div>
+                        <div class="glass__content p-4 sm:p-5 lg:p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-base sm:text-lg font-semibold text-white">Position Heatmap (24h)</h3>
+                                <i data-lucide="map" class="h-4 w-4 sm:h-5 sm:w-5 text-gray-400"></i>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
+                                <div v-for="item in positionHeatmap" :key="item.pair"
+                                     class="heatmap-cell bg-white/5 rounded-lg p-3 cursor-pointer"
+                                     :style="{ backgroundColor: getHeatmapColor(item.avg_position_size) }">
+                                    <div class="text-sm font-medium text-white">{{ item.pair }}</div>
+                                    <div class="text-xs text-gray-400 mt-1">Avg: {{ formatNumber(item.avg_position_size) }}</div>
+                                    <div :class="['text-xs mt-1', item.unrealized_pnl >= 0 ? 'metric-positive' : 'metric-negative']">
+                                        ${{ formatNumber(item.unrealized_pnl) }}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -429,62 +655,67 @@
 
             <!-- Trades Tab -->
             <div v-if="currentTab === 'trades'">
-                <div class="glass-panel rounded-xl p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-semibold text-white">Trade History</h3>
-                        <div class="flex space-x-2">
-                            <select v-model="selectedDays" 
-                                    @change="loadRecentTrades"
-                                    class="bg-dark-800 border border-gray-600 rounded-lg px-3 py-1 text-sm focus:outline-none focus:border-blue-500">
-                                <option :value="7">7 Days</option>
-                                <option :value="30">30 Days</option>
-                                <option :value="90">90 Days</option>
-                            </select>
-                            <button @click="exportTrades" class="px-3 py-1 text-sm bg-dark-800 rounded-lg hover:bg-dark-700 transition-colors">
-                                <i data-lucide="download" class="h-4 w-4 inline mr-1"></i>
-                                Export CSV
-                            </button>
+                <div class="glass">
+                    <div class="glass__refract"></div>
+                    <div class="glass__tint"></div>
+                    <div class="glass__specular"></div>
+                    <div class="glass__content p-4 sm:p-5 lg:p-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
+                            <h3 class="text-base sm:text-lg font-semibold text-white">Trade History</h3>
+                            <div class="flex flex-wrap gap-2">
+                                <select v-model="selectedDays" 
+                                        @change="loadRecentTrades"
+                                        class="bg-dark-800/70 border border-gray-600/50 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500">
+                                    <option :value="7">7 Days</option>
+                                    <option :value="30">30 Days</option>
+                                    <option :value="90">90 Days</option>
+                                </select>
+                                <button @click="exportTrades" class="px-3 py-1.5 text-sm bg-dark-800/60 rounded-lg hover:bg-dark-700/80 transition-colors">
+                                    <i data-lucide="download" class="h-4 w-4 inline mr-1"></i>
+                                    Export CSV
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr class="text-gray-400 border-b border-gray-700">
-                                    <th class="text-left py-2">Pair</th>
-                                    <th class="text-left py-2">Strategy</th>
-                                    <th class="text-left py-2">Side</th>
-                                    <th class="text-right py-2">Entry</th>
-                                    <th class="text-right py-2">Exit</th>
-                                    <th class="text-right py-2">P&L ($)</th>
-                                    <th class="text-right py-2">P&L (%)</th>
-                                    <th class="text-right py-2">Duration</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="trade in recentTrades" :key="trade.id" 
-                                    class="border-b border-gray-800 hover:bg-dark-800/50">
-                                    <td class="py-3 font-medium">{{ trade.pair }}</td>
-                                    <td class="py-3 text-gray-400">{{ trade.strategy }}</td>
-                                    <td class="py-3">
-                                        <span :class="['px-2 py-1 rounded text-xs font-medium',
-                                            trade.action === 'buy' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400']">
-                                            {{ trade.action === 'buy' ? 'LONG' : 'SHORT' }}
-                                        </span>
-                                    </td>
-                                    <td class="text-right py-3">{{ formatNumber(trade.entry_price) }}</td>
-                                    <td class="text-right py-3">{{ trade.exit_price ? formatNumber(trade.exit_price) : '-' }}</td>
-                                    <td :class="['text-right py-3 font-medium', trade.pnl_abs >= 0 ? 'metric-positive' : 'metric-negative']">
-                                        {{ trade.pnl_abs >= 0 ? '+' : '' }}${{ formatNumber(trade.pnl_abs) }}
-                                    </td>
-                                    <td :class="['text-right py-3', trade.pnl_pct >= 0 ? 'metric-positive' : 'metric-negative']">
-                                        {{ trade.pnl_pct >= 0 ? '+' : '' }}{{ formatNumber(trade.pnl_pct) }}%
-                                    </td>
-                                    <td class="text-right py-3 text-gray-400">
-                                        {{ formatDuration(trade.duration_seconds) }}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="text-gray-400 border-b border-gray-700/50">
+                                        <th class="text-left py-2">Pair</th>
+                                        <th class="text-left py-2 hidden sm:table-cell">Strategy</th>
+                                        <th class="text-left py-2">Side</th>
+                                        <th class="text-right py-2">Entry</th>
+                                        <th class="text-right py-2 hidden sm:table-cell">Exit</th>
+                                        <th class="text-right py-2">P&amp;L ($)</th>
+                                        <th class="text-right py-2 hidden md:table-cell">P&amp;L (%)</th>
+                                        <th class="text-right py-2 hidden lg:table-cell">Duration</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="trade in recentTrades" :key="trade.id" 
+                                        class="border-b border-gray-800 hover:bg-white/5">
+                                        <td class="py-3 font-medium">{{ trade.pair }}</td>
+                                        <td class="py-3 text-gray-400 hidden sm:table-cell">{{ trade.strategy }}</td>
+                                        <td class="py-3">
+                                            <span :class="['px-2 py-1 rounded text-xs font-medium',
+                                                trade.action === 'buy' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400']">
+                                                {{ trade.action === 'buy' ? 'LONG' : 'SHORT' }}
+                                            </span>
+                                        </td>
+                                        <td class="text-right py-3">{{ formatNumber(trade.entry_price) }}</td>
+                                        <td class="text-right py-3 hidden sm:table-cell">{{ trade.exit_price ? formatNumber(trade.exit_price) : '-' }}</td>
+                                        <td :class="['text-right py-3 font-medium', trade.pnl_abs >= 0 ? 'metric-positive' : 'metric-negative']">
+                                            {{ trade.pnl_abs >= 0 ? '+' : '' }}${{ formatNumber(trade.pnl_abs) }}
+                                        </td>
+                                        <td :class="['text-right py-3 hidden md:table-cell', trade.pnl_pct >= 0 ? 'metric-positive' : 'metric-negative']">
+                                            {{ trade.pnl_pct >= 0 ? '+' : '' }}{{ formatNumber(trade.pnl_pct) }}%
+                                        </td>
+                                        <td class="text-right py-3 text-gray-400 hidden lg:table-cell">
+                                            {{ formatDuration(trade.duration_seconds) }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -492,97 +723,132 @@
             <!-- Strategies Tab -->
             <div v-if="currentTab === 'strategies'">
                 <!-- Running Instances -->
-                <div class="glass-panel rounded-xl p-6 mb-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-semibold text-white">Running Instances</h3>
-                        <button @click="showStartInstanceModal = true" 
-                                class="px-4 py-2 bg-green-600/20 text-green-400 rounded-lg hover:bg-green-600/30 transition-colors">
-                            <i data-lucide="play" class="h-4 w-4 inline mr-2"></i>
-                            Start Instance
-                        </button>
-                    </div>
-                    <div v-if="runningInstances.length === 0" class="text-center py-8 text-gray-500">
-                        <i data-lucide="pause-circle" class="h-12 w-12 mx-auto mb-2 opacity-50"></i>
-                        <p>No running instances</p>
-                    </div>
-                    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div v-for="instance in runningInstances" :key="instance.id" class="strategy-card rounded-lg p-4">
-                            <div class="flex justify-between items-start mb-2">
-                                <div>
-                                    <h4 class="font-semibold text-white">{{ instance.strategy }}</h4>
-                                    <p class="text-xs text-gray-400">{{ instance.pair }}</p>
+                <div class="glass mb-4 sm:mb-6">
+                    <div class="glass__refract"></div>
+                    <div class="glass__tint"></div>
+                    <div class="glass__specular"></div>
+                    <div class="glass__content p-4 sm:p-5 lg:p-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
+                            <h3 class="text-base sm:text-lg font-semibold text-white">Running Instances</h3>
+                            <button @click="showStartInstanceModal = true" 
+                                    class="glass-btn text-white">
+                                <div class="glass-btn__refract"></div>
+                                <div class="glass-btn__tint" style="background:linear-gradient(135deg,rgba(16,185,129,0.35) 0%,rgba(16,185,129,0.45) 100%);"></div>
+                                <div class="glass-btn__specular"></div>
+                                <div class="glass-btn__content px-4 py-2 text-sm flex items-center">
+                                    <i data-lucide="play" class="h-4 w-4 inline mr-2"></i>
+                                    Start Instance
                                 </div>
-                                <span :class="['px-2 py-1 rounded text-xs', 
-                                    instance.status === 'running' ? 'status-running' : 'status-stopped']">
-                                    {{ instance.status }}
-                                </span>
-                            </div>
-                            <div class="space-y-1 text-sm text-gray-400 mb-3">
-                                <div class="flex justify-between">
-                                    <span>Exchange:</span>
-                                    <span class="text-white">{{ instance.exchange }}</span>
+                            </button>
+                        </div>
+                        <div v-if="runningInstances.length === 0" class="text-center py-8 text-gray-500">
+                            <i data-lucide="pause-circle" class="h-12 w-12 mx-auto mb-2 opacity-50"></i>
+                            <p>No running instances</p>
+                        </div>
+                        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div v-for="instance in runningInstances" :key="instance.id" class="strategy-card glass-card rounded-lg">
+                                <div class="glass-card__refract"></div>
+                                <div class="glass-card__tint"></div>
+                                <div class="glass-card__specular"></div>
+                                <div class="glass-card__content p-4">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div>
+                                            <h4 class="font-semibold text-white">{{ instance.strategy }}</h4>
+                                            <p class="text-xs text-gray-400">{{ instance.pair }}</p>
+                                        </div>
+                                        <span :class="['px-2 py-1 rounded text-xs', 
+                                            instance.status === 'running' ? 'status-running' : 'status-stopped']">
+                                            {{ instance.status }}
+                                        </span>
+                                    </div>
+                                    <div class="space-y-1 text-sm text-gray-400 mb-3">
+                                        <div class="flex justify-between">
+                                            <span>Exchange:</span>
+                                            <span class="text-white">{{ instance.exchange }}</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span>Qty:</span>
+                                            <span class="text-white">{{ instance.qty }}</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span>Leverage:</span>
+                                            <span class="text-white">{{ instance.leverage }}x</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        <button @click="stopInstance(instance.id)" 
+                                                class="flex-1 px-3 py-1.5 bg-red-600/15 text-red-400 rounded-lg hover:bg-red-600/25 transition-colors text-sm">
+                                            <i data-lucide="square" class="h-3 w-3 inline mr-1"></i>
+                                            Stop
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="flex justify-between">
-                                    <span>Qty:</span>
-                                    <span class="text-white">{{ instance.qty }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span>Leverage:</span>
-                                    <span class="text-white">{{ instance.leverage }}x</span>
-                                </div>
-                            </div>
-                            <div class="flex space-x-2">
-                                <button @click="stopInstance(instance.id)" 
-                                        class="flex-1 px-3 py-1 bg-red-600/20 text-red-400 rounded hover:bg-red-600/30 transition-colors text-sm">
-                                    <i data-lucide="square" class="h-3 w-3 inline mr-1"></i>
-                                    Stop
-                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Available Strategies -->
-                <div class="glass-panel rounded-xl p-6 mb-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-semibold text-white">Available Strategies</h3>
-                        <div class="flex space-x-2">
-                            <button @click="refreshStrategies" 
-                                    :disabled="isLoading"
-                                    class="p-2 rounded-lg bg-dark-800 hover:bg-dark-700 transition-colors">
-                                <i data-lucide="refresh-cw" :class="['h-4 w-4', isLoading ? 'animate-spin' : '']"></i>
-                            </button>
-                            <label class="px-4 py-2 bg-blue-600/20 text-blue-400 rounded-lg hover:bg-blue-600/30 transition-colors cursor-pointer">
-                                <i data-lucide="upload" class="h-4 w-4 inline mr-2"></i>
-                                Upload Strategy
-                                <input type="file" @change="uploadStrategy" accept=".zip" class="hidden">
-                            </label>
+                <div class="glass mb-4 sm:mb-6">
+                    <div class="glass__refract"></div>
+                    <div class="glass__tint"></div>
+                    <div class="glass__specular"></div>
+                    <div class="glass__content p-4 sm:p-5 lg:p-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
+                            <h3 class="text-base sm:text-lg font-semibold text-white">Available Strategies</h3>
+                            <div class="flex flex-wrap gap-2">
+                                <button @click="refreshStrategies" 
+                                        :disabled="isLoading"
+                                        class="p-2 rounded-lg bg-dark-800/60 hover:bg-dark-700/80 transition-colors">
+                                    <i data-lucide="refresh-cw" :class="['h-4 w-4', isLoading ? 'animate-spin' : '']"></i>
+                                </button>
+                                <label class="glass-btn text-white cursor-pointer">
+                                    <div class="glass-btn__refract"></div>
+                                    <div class="glass-btn__tint" style="background:linear-gradient(135deg,rgba(59,130,246,0.4) 0%,rgba(59,130,246,0.5) 100%);"></div>
+                                    <div class="glass-btn__specular"></div>
+                                    <div class="glass-btn__content px-4 py-2 text-sm flex items-center">
+                                        <i data-lucide="upload" class="h-4 w-4 inline mr-2"></i>
+                                        Upload Strategy
+                                    </div>
+                                    <input type="file" @change="uploadStrategy" accept=".zip" class="hidden">
+                                </label>
+                            </div>
                         </div>
-                    </div>
-                    <div v-if="availableStrategies.length === 0" class="text-center py-8 text-gray-500">
-                        <i data-lucide="folder-open" class="h-12 w-12 mx-auto mb-2 opacity-50"></i>
-                        <p>No strategies available</p>
-                    </div>
-                    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div v-for="strategy in availableStrategies" :key="strategy.filename" class="strategy-card rounded-lg p-4">
-                            <div class="flex justify-between items-start mb-2">
-                                <div>
-                                    <h4 class="font-semibold text-white">{{ strategy.name }}</h4>
-                                    <p class="text-xs text-gray-400">{{ strategy.filename }}</p>
-                                </div>
-                                <div class="flex space-x-1">
-                                    <button @click="deleteStrategy(strategy.filename)" 
-                                            class="p-1 text-red-400 hover:bg-red-600/20 rounded transition-colors">
-                                        <i data-lucide="trash-2" class="h-4 w-4"></i>
+                        <div v-if="availableStrategies.length === 0" class="text-center py-8 text-gray-500">
+                            <i data-lucide="folder-open" class="h-12 w-12 mx-auto mb-2 opacity-50"></i>
+                            <p>No strategies available</p>
+                        </div>
+                        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div v-for="strategy in availableStrategies" :key="strategy.filename" class="strategy-card glass-card rounded-lg">
+                                <div class="glass-card__refract"></div>
+                                <div class="glass-card__tint"></div>
+                                <div class="glass-card__specular"></div>
+                                <div class="glass-card__content p-4">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div>
+                                            <h4 class="font-semibold text-white">{{ strategy.name }}</h4>
+                                            <p class="text-xs text-gray-400">{{ strategy.filename }}</p>
+                                        </div>
+                                        <div class="flex space-x-1">
+                                            <button @click="deleteStrategy(strategy.filename)" 
+                                                    class="p-1 text-red-400 hover:bg-red-600/15 rounded transition-colors">
+                                                <i data-lucide="trash-2" class="h-4 w-4"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <p class="text-sm text-gray-400 mb-3">{{ strategy.description }}</p>
+                                    <button @click="openStartInstanceModal(strategy.filename)" 
+                                            class="glass-btn w-full text-white">
+                                        <div class="glass-btn__refract"></div>
+                                        <div class="glass-btn__tint" style="background:linear-gradient(135deg,rgba(16,185,129,0.35) 0%,rgba(16,185,129,0.45) 100%);"></div>
+                                        <div class="glass-btn__specular"></div>
+                                        <div class="glass-btn__content py-2 text-sm flex items-center justify-center">
+                                            <i data-lucide="play" class="h-4 w-4 inline mr-2"></i>
+                                            Start Instance
+                                        </div>
                                     </button>
                                 </div>
                             </div>
-                            <p class="text-sm text-gray-400 mb-3">{{ strategy.description }}</p>
-                            <button @click="openStartInstanceModal(strategy.filename)" 
-                                    class="w-full mt-2 px-3 py-2 bg-green-600/20 text-green-400 rounded hover:bg-green-600/30 transition-colors text-sm">
-                                <i data-lucide="play" class="h-4 w-4 inline mr-2"></i>
-                                Start Instance
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -590,43 +856,58 @@
 
             <!-- API Keys Tab -->
             <div v-if="currentTab === 'apikeys'">
-                <div class="glass-panel rounded-xl p-6">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-lg font-semibold text-white">API Keys</h3>
-                        <button @click="showAddKeyModal = true" 
-                                class="px-4 py-2 bg-blue-600/20 text-blue-400 rounded-lg hover:bg-blue-600/30 transition-colors">
-                            <i data-lucide="plus" class="h-4 w-4 inline mr-2"></i>
-                            Add Key
-                        </button>
-                    </div>
-                    
-                    <div v-if="apiKeys.length === 0" class="text-center py-8 text-gray-500">
-                        <i data-lucide="key" class="h-12 w-12 mx-auto mb-2 opacity-50"></i>
-                        <p>No API keys configured</p>
-                    </div>
-                    
-                    <div v-else class="space-y-4">
-                        <div v-for="key in apiKeys" :key="key.id" class="strategy-card rounded-lg p-4">
-                            <div class="flex justify-between items-start">
-                                <div class="flex items-center space-x-4">
-                                    <div class="w-10 h-10 rounded-lg bg-blue-600/20 flex items-center justify-center">
-                                        <i data-lucide="key" class="h-5 w-5 text-blue-400"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-semibold text-white capitalize">{{ key.exchange }}</h4>
-                                        <p class="text-xs text-gray-400">API Key: {{ maskApiKey(key.api_key) }}</p>
-                                        <p class="text-xs text-gray-500">Created: {{ formatDate(key.created_at) }}</p>
-                                    </div>
+                <div class="glass">
+                    <div class="glass__refract"></div>
+                    <div class="glass__tint"></div>
+                    <div class="glass__specular"></div>
+                    <div class="glass__content p-4 sm:p-5 lg:p-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-3">
+                            <h3 class="text-base sm:text-lg font-semibold text-white">API Keys</h3>
+                            <button @click="showAddKeyModal = true" 
+                                    class="glass-btn text-white">
+                                <div class="glass-btn__refract"></div>
+                                <div class="glass-btn__tint" style="background:linear-gradient(135deg,rgba(59,130,246,0.4) 0%,rgba(59,130,246,0.5) 100%);"></div>
+                                <div class="glass-btn__specular"></div>
+                                <div class="glass-btn__content px-4 py-2 text-sm flex items-center">
+                                    <i data-lucide="plus" class="h-4 w-4 inline mr-2"></i>
+                                    Add Key
                                 </div>
-                                <div class="flex space-x-2">
-                                    <button @click="editKey(key)" 
-                                            class="p-2 text-yellow-400 hover:bg-yellow-600/20 rounded transition-colors">
-                                        <i data-lucide="edit" class="h-4 w-4"></i>
-                                    </button>
-                                    <button @click="deleteKey(key.exchange)" 
-                                            class="p-2 text-red-400 hover:bg-red-600/20 rounded transition-colors">
-                                        <i data-lucide="trash-2" class="h-4 w-4"></i>
-                                    </button>
+                            </button>
+                        </div>
+                        
+                        <div v-if="apiKeys.length === 0" class="text-center py-8 text-gray-500">
+                            <i data-lucide="key" class="h-12 w-12 mx-auto mb-2 opacity-50"></i>
+                            <p>No API keys configured</p>
+                        </div>
+                        
+                        <div v-else class="space-y-4">
+                            <div v-for="key in apiKeys" :key="key.id" class="strategy-card glass-card rounded-lg">
+                                <div class="glass-card__refract"></div>
+                                <div class="glass-card__tint"></div>
+                                <div class="glass-card__specular"></div>
+                                <div class="glass-card__content p-4">
+                                    <div class="flex flex-col sm:flex-row justify-between sm:items-start gap-3">
+                                        <div class="flex items-center space-x-4">
+                                            <div class="w-10 h-10 rounded-lg bg-blue-600/15 flex items-center justify-center flex-shrink-0">
+                                                <i data-lucide="key" class="h-5 w-5 text-blue-400"></i>
+                                            </div>
+                                            <div>
+                                                <h4 class="font-semibold text-white capitalize">{{ key.exchange }}</h4>
+                                                <p class="text-xs text-gray-400">API Key: {{ maskApiKey(key.api_key) }}</p>
+                                                <p class="text-xs text-gray-500">Created: {{ formatDate(key.created_at) }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex space-x-2 self-end sm:self-start">
+                                            <button @click="editKey(key)" 
+                                                    class="p-2 text-yellow-400 hover:bg-yellow-600/15 rounded transition-colors">
+                                                <i data-lucide="edit" class="h-4 w-4"></i>
+                                            </button>
+                                            <button @click="deleteKey(key.exchange)" 
+                                                    class="p-2 text-red-400 hover:bg-red-600/15 rounded transition-colors">
+                                                <i data-lucide="trash-2" class="h-4 w-4"></i>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -635,100 +916,207 @@
             </div>
         </main>
 
-        <!-- Start Instance Modal -->
-        <div v-if="showStartInstanceModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
-            <div class="glass-panel rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold text-white">Start Strategy Instance</h3>
-                    <button @click="showStartInstanceModal = false" class="text-gray-400 hover:text-white">
-                        <i data-lucide="x" class="h-5 w-5"></i>
-                    </button>
+        <!-- ===== MOBILE BOTTOM NAVIGATION ===== -->
+        <nav class="mobile-nav">
+            <div class="glass mx-2 sm:mx-4 rounded-2xl">
+                <div class="glass__refract"></div>
+                <div class="glass__tint"></div>
+                <div class="glass__specular"></div>
+                <div class="glass__content px-3 py-2">
+                    <div class="flex justify-around items-center">
+                        <button @click="currentTab = 'overview'" 
+                                :class="['flex flex-col items-center px-3 py-1.5 rounded-xl transition-all',
+                                         currentTab === 'overview' ? 'text-blue-400' : 'text-gray-500']">
+                            <i data-lucide="layout-dashboard" :class="['h-5 w-5 mb-0.5', currentTab === 'overview' ? '' : '']"></i>
+                            <span class="text-[10px] font-medium">Overview</span>
+                        </button>
+                        <button @click="currentTab = 'trades'"
+                                :class="['flex flex-col items-center px-3 py-1.5 rounded-xl transition-all',
+                                         currentTab === 'trades' ? 'text-blue-400' : 'text-gray-500']">
+                            <i data-lucide="list" class="h-5 w-5 mb-0.5"></i>
+                            <span class="text-[10px] font-medium">Trades</span>
+                        </button>
+                        <button @click="currentTab = 'strategies'"
+                                :class="['flex flex-col items-center px-3 py-1.5 rounded-xl transition-all',
+                                         currentTab === 'strategies' ? 'text-blue-400' : 'text-gray-500']">
+                            <i data-lucide="cpu" class="h-5 w-5 mb-0.5"></i>
+                            <span class="text-[10px] font-medium">Strategies</span>
+                        </button>
+                        <button @click="currentTab = 'apikeys'"
+                                :class="['flex flex-col items-center px-3 py-1.5 rounded-xl transition-all',
+                                         currentTab === 'apikeys' ? 'text-blue-400' : 'text-gray-500']">
+                            <i data-lucide="key" class="h-5 w-5 mb-0.5"></i>
+                            <span class="text-[10px] font-medium">Keys</span>
+                        </button>
+                    </div>
                 </div>
-                <form @submit.prevent="startInstance">
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm text-gray-400 mb-1">Strategy</label>
-                            <select v-model="newInstance.strategy" required class="input-field w-full px-3 py-2 rounded-lg">
-                                <option v-for="s in availableStrategies" :key="s.filename" :value="s.filename">{{ s.name }}</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-400 mb-1">Trading Pair</label>
-                            <input v-model="newInstance.pair" type="text" required 
-                                   placeholder="e.g., BTC-USD" class="input-field w-full px-3 py-2 rounded-lg">
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-400 mb-1">Exchange</label>
-                            <select v-model="newInstance.exchange" required class="input-field w-full px-3 py-2 rounded-lg">
-                                <option v-for="e in exchanges" :key="e" :value="e">{{ e }}</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-400 mb-1">Quantity</label>
-                            <input v-model="newInstance.qty" type="number" step="0.0001" required 
-                                   placeholder="0.01" class="input-field w-full px-3 py-2 rounded-lg">
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-400 mb-1">Leverage</label>
-                            <input v-model="newInstance.leverage" type="number" required
-                                   min="1" max="20" step="1"
-                                   placeholder="1" class="input-field w-full px-3 py-2 rounded-lg">
-                        </div>
-                    </div>
-                    <div class="mt-6 flex space-x-3">
-                        <button type="button" @click="showStartInstanceModal = false" 
-                                class="flex-1 px-4 py-2 bg-dark-700 text-gray-300 rounded-lg hover:bg-dark-600 transition-colors">
-                            Cancel
-                        </button>
-                        <button type="submit" 
-                                class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                            Start
+            </div>
+        </nav>
+
+        <!-- ===== MODALS ===== -->
+
+        <!-- Start Instance Modal -->
+        <div v-if="showStartInstanceModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div class="glass max-w-md w-full max-h-[85dvh] overflow-y-auto">
+                <div class="glass__refract"></div>
+                <div class="glass__tint"></div>
+                <div class="glass__specular"></div>
+                <div class="glass__content p-4 sm:p-5 lg:p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-white">Start Strategy Instance</h3>
+                        <button @click="showStartInstanceModal = false" class="text-gray-400 hover:text-white p-1">
+                            <i data-lucide="x" class="h-5 w-5"></i>
                         </button>
                     </div>
-                </form>
+                    <form @submit.prevent="startInstance">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-1">Strategy</label>
+                                <div class="input-glass">
+                                    <div class="input-glass__refract"></div>
+                                    <div class="input-glass__tint"></div>
+                                    <div class="input-glass__content">
+                                        <select v-model="newInstance.strategy" required class="w-full px-3 py-2.5 bg-transparent text-white outline-none appearance-none">
+                                            <option v-for="s in availableStrategies" :key="s.filename" :value="s.filename" class="bg-dark-800">{{ s.name }}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-1">Trading Pair</label>
+                                <div class="input-glass">
+                                    <div class="input-glass__refract"></div>
+                                    <div class="input-glass__tint"></div>
+                                    <div class="input-glass__content">
+                                        <input v-model="newInstance.pair" type="text" required 
+                                               placeholder="e.g., BTC-USD" class="w-full px-3 py-2.5 bg-transparent text-white placeholder-gray-500 outline-none">
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-1">Exchange</label>
+                                <div class="input-glass">
+                                    <div class="input-glass__refract"></div>
+                                    <div class="input-glass__tint"></div>
+                                    <div class="input-glass__content">
+                                        <select v-model="newInstance.exchange" required class="w-full px-3 py-2.5 bg-transparent text-white outline-none appearance-none">
+                                            <option v-for="e in exchanges" :key="e" :value="e" class="bg-dark-800">{{ e }}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-1">Quantity</label>
+                                <div class="input-glass">
+                                    <div class="input-glass__refract"></div>
+                                    <div class="input-glass__tint"></div>
+                                    <div class="input-glass__content">
+                                        <input v-model="newInstance.qty" type="number" step="0.0001" required 
+                                               placeholder="0.01" class="w-full px-3 py-2.5 bg-transparent text-white placeholder-gray-500 outline-none">
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-1">Leverage</label>
+                                <div class="input-glass">
+                                    <div class="input-glass__refract"></div>
+                                    <div class="input-glass__tint"></div>
+                                    <div class="input-glass__content">
+                                        <input v-model="newInstance.leverage" type="number" required
+                                               min="1" max="20" step="1"
+                                               placeholder="1" class="w-full px-3 py-2.5 bg-transparent text-white placeholder-gray-500 outline-none">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-6 flex flex-col-reverse sm:flex-row gap-3">
+                            <button type="button" @click="showStartInstanceModal = false" 
+                                    class="flex-1 px-4 py-2.5 bg-dark-700/80 text-gray-300 rounded-xl hover:bg-dark-600/80 transition-colors text-sm">
+                                Cancel
+                            </button>
+                            <button type="submit" 
+                                    class="glass-btn flex-1 text-white">
+                                <div class="glass-btn__refract"></div>
+                                <div class="glass-btn__tint"></div>
+                                <div class="glass-btn__specular"></div>
+                                <div class="glass-btn__content py-2.5 text-sm font-medium">
+                                    Start
+                                </div>
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
 
         <!-- Add/Edit API Key Modal -->
-        <div v-if="showAddKeyModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
-            <div class="glass-panel rounded-xl p-6 max-w-md w-full">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold text-white">{{ editingKey ? 'Edit' : 'Add' }} API Key</h3>
-                    <button @click="closeKeyModal" class="text-gray-400 hover:text-white">
-                        <i data-lucide="x" class="h-5 w-5"></i>
-                    </button>
+        <div v-if="showAddKeyModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div class="glass max-w-md w-full">
+                <div class="glass__refract"></div>
+                <div class="glass__tint"></div>
+                <div class="glass__specular"></div>
+                <div class="glass__content p-4 sm:p-5 lg:p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-white">{{ editingKey ? 'Edit' : 'Add' }} API Key</h3>
+                        <button @click="closeKeyModal" class="text-gray-400 hover:text-white p-1">
+                            <i data-lucide="x" class="h-5 w-5"></i>
+                        </button>
+                    </div>
+                    <form @submit.prevent="saveKey">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-1">Exchange</label>
+                                <div class="input-glass">
+                                    <div class="input-glass__refract"></div>
+                                    <div class="input-glass__tint"></div>
+                                    <div class="input-glass__content">
+                                        <select v-model="keyForm.exchange" :disabled="editingKey" required 
+                                                class="w-full px-3 py-2.5 bg-transparent text-white outline-none appearance-none disabled:opacity-50">
+                                            <option v-for="e in exchanges" :key="e" :value="e" class="bg-dark-800">{{ e }}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-1">API Key</label>
+                                <div class="input-glass">
+                                    <div class="input-glass__refract"></div>
+                                    <div class="input-glass__tint"></div>
+                                    <div class="input-glass__content">
+                                        <input v-model="keyForm.api_key" type="text" required 
+                                               class="w-full px-3 py-2.5 bg-transparent text-white outline-none">
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-1">API Secret</label>
+                                <div class="input-glass">
+                                    <div class="input-glass__refract"></div>
+                                    <div class="input-glass__tint"></div>
+                                    <div class="input-glass__content">
+                                        <input v-model="keyForm.api_secret" type="password" required 
+                                               class="w-full px-3 py-2.5 bg-transparent text-white outline-none">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-6 flex flex-col-reverse sm:flex-row gap-3">
+                            <button type="button" @click="closeKeyModal" 
+                                    class="flex-1 px-4 py-2.5 bg-dark-700/80 text-gray-300 rounded-xl hover:bg-dark-600/80 transition-colors text-sm">
+                                Cancel
+                            </button>
+                            <button type="submit" 
+                                    class="glass-btn flex-1 text-white">
+                                <div class="glass-btn__refract"></div>
+                                <div class="glass-btn__tint"></div>
+                                <div class="glass-btn__specular"></div>
+                                <div class="glass-btn__content py-2.5 text-sm font-medium">
+                                    {{ editingKey ? 'Update' : 'Add' }}
+                                </div>
+                            </button>
+                        </div>
+                    </form>
                 </div>
-                <form @submit.prevent="saveKey">
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm text-gray-400 mb-1">Exchange</label>
-                            <select v-model="keyForm.exchange" :disabled="editingKey" required 
-                                    class="input-field w-full px-3 py-2 rounded-lg">
-                                <option v-for="e in exchanges" :key="e" :value="e">{{ e }}</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-400 mb-1">API Key</label>
-                            <input v-model="keyForm.api_key" type="text" required 
-                                   class="input-field w-full px-3 py-2 rounded-lg">
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-400 mb-1">API Secret</label>
-                            <input v-model="keyForm.api_secret" type="password" required 
-                                   class="input-field w-full px-3 py-2 rounded-lg">
-                        </div>
-                    </div>
-                    <div class="mt-6 flex space-x-3">
-                        <button type="button" @click="closeKeyModal" 
-                                class="flex-1 px-4 py-2 bg-dark-700 text-gray-300 rounded-lg hover:bg-dark-600 transition-colors">
-                            Cancel
-                        </button>
-                        <button type="submit" 
-                                class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                            {{ editingKey ? 'Update' : 'Add' }}
-                        </button>
-                    </div>
-                </form>
             </div>
         </div>
     </div>
