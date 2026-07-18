@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Login - AosiConn Trading</title>
-    
+    <title>Login — AosiConn Trading</title>
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -13,288 +13,312 @@
             theme: {
                 extend: {
                     colors: {
-                        dark: {
+                        slate: {
+                            950: '#020617',
                             900: '#0f172a',
+                            850: '#0b1221',
                             800: '#1e293b',
+                            750: '#172033',
                             700: '#334155',
+                            600: '#475569',
                         }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
                     }
                 }
             }
         }
     </script>
-    
+
     <!-- Vue 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    
+
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        :root {
+            --glass-bg: rgba(30, 41, 59, 0.45);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-highlight: rgba(255, 255, 255, 0.12);
+            --accent: #3b82f6;
+            --accent-2: #8b5cf6;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
         [v-cloak] { display: none; }
 
-        /* Liquid Glass: Layer 0 container */
-        .glass {
-            position: relative;
-            border-radius: 28px;
-            overflow: hidden;
-        }
-        .glass__refract {
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            backdrop-filter: blur(14px) url(#liquid-glass-panel) brightness(1.06) saturate(1.3);
-            -webkit-backdrop-filter: blur(14px) url(#liquid-glass-panel) brightness(1.06) saturate(1.3);
-            isolation: isolate;
-        }
-        .glass__tint {
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            background: rgba(30, 41, 59, 0.55);
-        }
-        .glass__specular {
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            pointer-events: none;
-            box-shadow:
-                inset 0  1px 0 rgba(255,255,255,0.6),
-                inset 0 -1px 0 rgba(255,255,255,0.08);
-        }
-        .glass__content {
-            position: relative;
-            z-index: 10;
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #020617;
+            min-height: 100dvh;
+            overflow-x: hidden;
         }
 
-        /* Liquid Glass: Buttons */
-        .glass-btn {
-            position: relative;
-            border-radius: 16px;
-            overflow: hidden;
-            transition: transform 0.25s ease, box-shadow 0.25s ease;
-        }
-        .glass-btn:hover {
-            transform: translateY(-1px);
-        }
-        .glass-btn:active {
-            transform: scale(0.97);
-        }
-        .glass-btn__refract {
-            position: absolute;
+        /* Animated background gradient */
+        .bg-aurora {
+            position: fixed;
             inset: 0;
-            border-radius: inherit;
-            backdrop-filter: blur(16px) url(#liquid-glass-btn) brightness(1.12) saturate(1.4);
-            -webkit-backdrop-filter: blur(16px) url(#liquid-glass-btn) brightness(1.12) saturate(1.4);
-            isolation: isolate;
-        }
-        .glass-btn__tint {
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            background: linear-gradient(135deg, rgba(59,130,246,0.5) 0%, rgba(139,92,246,0.55) 100%);
-        }
-        .glass-btn__specular {
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            pointer-events: none;
-            box-shadow:
-                inset 0 1px 0 rgba(255,255,255,0.7),
-                inset 0 -1px 0 rgba(255,255,255,0.1);
-        }
-        .glass-btn__content {
-            position: relative;
-            z-index: 10;
+            z-index: -1;
+            background:
+                radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.18) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.06) 0%, transparent 50%),
+                #020617;
+            filter: blur(0px);
         }
 
-        /* Input fields with slight glass */
-        .input-glass {
+        .bg-aurora::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 60% 30%, rgba(59, 130, 246, 0.10) 0%, transparent 35%);
+            animation: aurora 12s ease-in-out infinite alternate;
+        }
+
+        @keyframes aurora {
+            0% { transform: translate(0, 0) scale(1); opacity: 0.6; }
+            100% { transform: translate(-4%, 4%) scale(1.08); opacity: 1; }
+        }
+
+        /* Glass card */
+        .glass-card {
             position: relative;
-            border-radius: 12px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow:
+                0 24px 80px rgba(0, 0, 0, 0.45),
+                inset 0 1px 0 var(--glass-highlight);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             overflow: hidden;
         }
-        .input-glass__refract {
+
+        .glass-card::before {
+            content: '';
             position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            backdrop-filter: blur(8px) url(#liquid-glass-btn) brightness(1.03);
-            -webkit-backdrop-filter: blur(8px) url(#liquid-glass-btn) brightness(1.03);
-            isolation: isolate;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
         }
-        .input-glass__tint {
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            background: rgba(15, 23, 42, 0.7);
+
+        /* Form inputs */
+        .input-field {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.65);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            transition: all 0.3s ease;
+            border-radius: 14px;
+            transition: all 0.2s ease;
         }
-        .input-glass:focus-within .input-glass__tint {
-            border-color: rgba(59, 130, 246, 0.6);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+
+        .input-field:focus-within {
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+            background: rgba(15, 23, 42, 0.85);
         }
-        .input-glass__content {
+
+        .input-field input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #f8fafc;
+            padding: 14px 16px;
+            font-size: 15px;
+        }
+
+        .input-field input::placeholder {
+            color: #64748b;
+        }
+
+        .input-icon {
+            color: #64748b;
+            margin-left: 14px;
+            flex-shrink: 0;
+        }
+
+        .toggle-password {
+            color: #64748b;
+            padding: 10px 14px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .toggle-password:hover { color: #e2e8f0; }
+
+        /* Primary button */
+        .btn-primary {
             position: relative;
-            z-index: 10;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 14px 24px;
+            border-radius: 14px;
+            border: none;
+            font-weight: 600;
+            font-size: 15px;
+            color: white;
+            cursor: pointer;
+            overflow: hidden;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            box-shadow:
+                0 8px 24px rgba(59, 130, 246, 0.35),
+                inset 0 1px 0 rgba(255,255,255,0.25);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 32px rgba(59, 130, 246, 0.45);
+        }
+
+        .btn-primary:hover::before { opacity: 1; }
+
+        .btn-primary:active { transform: translateY(0) scale(0.98); }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Alert */
+        .alert {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            font-size: 14px;
+            border: 1px solid;
+            animation: fadeIn 0.25s ease;
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.10);
+            border-color: rgba(239, 68, 68, 0.25);
+            color: #fca5a5;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.10);
+            border-color: rgba(16, 185, 129, 0.25);
+            color: #6ee7b7;
+        }
+
+        .alert-info {
+            background: rgba(59, 130, 246, 0.10);
+            border-color: rgba(59, 130, 246, 0.25);
+            color: #93c5fd;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-        .shake {
-            animation: shake 0.5s ease;
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
         }
 
-        .fade-enter-active, .fade-leave-active {
-            transition: opacity 0.3s ease;
-        }
-        .fade-enter-from, .fade-leave-to {
-            opacity: 0;
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 640px) {
-            .glass { border-radius: 22px; }
-            .glass-btn { border-radius: 14px; }
-        }
+        .shake { animation: shake 0.45s ease; }
     </style>
 </head>
-<body class="bg-dark-900 text-gray-100 min-h-[100dvh] flex items-center justify-center p-4">
-    <!-- Hidden SVG filters -->
-    <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute;overflow:hidden">
-        <defs>
-            <filter id="liquid-glass-panel" color-interpolation-filters="sRGB" x="0%" y="0%" width="100%" height="100%">
-                <feImage result="dispMap" x="0" y="0" width="400" height="300" preserveAspectRatio="none"
-                    href="/static/lg-map-panel.png"/>
-                <feDisplacementMap in="SourceGraphic" in2="dispMap" scale="-38" xChannelSelector="R" yChannelSelector="G"/>
-            </filter>
-            <filter id="liquid-glass-btn" color-interpolation-filters="sRGB" x="0%" y="0%" width="100%" height="100%">
-                <feImage result="dispMap" x="0" y="0" width="300" height="56" preserveAspectRatio="none"
-                    href="/static/lg-map-button.png"/>
-                <feDisplacementMap in="SourceGraphic" in2="dispMap" scale="-28" xChannelSelector="R" yChannelSelector="G"/>
-            </filter>
-        </defs>
-    </svg>
+<body class="text-slate-200 antialiased flex items-center justify-center p-4">
+    <div class="bg-aurora"></div>
 
-    <div id="app" v-cloak class="w-full max-w-md">
-        <!-- Logo Section -->
+    <div id="app" v-cloak class="w-full max-w-[420px]">
+        <!-- Logo -->
         <div class="text-center mb-8">
-            <div class="flex items-center justify-center mb-4">
-                <i data-lucide="activity" class="h-12 w-12 text-blue-500 mr-3"></i>
-                <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-                    AosiConn
-                </h1>
+            <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 mb-5 shadow-lg shadow-blue-500/20">
+                <i data-lucide="activity" class="h-7 w-7 text-white"></i>
             </div>
-            <p class="text-gray-400">Trading Dashboard</p>
+            <h1 class="text-3xl font-bold tracking-tight text-white mb-1">AosiConn</h1>
+            <p class="text-slate-400 text-sm">Trading Dashboard</p>
         </div>
-        
-        <!-- Login Card: Liquid Glass -->
-        <div class="glass shadow-2xl">
-            <div class="glass__refract"></div>
-            <div class="glass__tint"></div>
-            <div class="glass__specular"></div>
-            <div class="glass__content p-6 sm:p-8">
-                <div class="text-center mb-6">
-                    <h2 class="text-2xl font-semibold text-white mb-2">Welcome Back</h2>
-                    <p class="text-gray-400 text-sm">Sign in to access your trading dashboard</p>
-                </div>
-                
-                <!-- Error Alert -->
-                <transition name="fade">
-                    <div v-if="error" :class="['mb-6 p-4 rounded-lg flex items-center', errorClass]">
-                        <i data-lucide="alert-circle" class="h-5 w-5 mr-2 flex-shrink-0"></i>
-                        <span class="text-sm">{{ error }}</span>
-                    </div>
-                </transition>
-                
-                <!-- Login Form -->
-                <form @submit.prevent="handleLogin" class="space-y-5">
-                    <!-- Username Field -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">
-                            Username
-                        </label>
-                        <div class="input-glass">
-                            <div class="input-glass__refract"></div>
-                            <div class="input-glass__tint"></div>
-                            <div class="input-glass__content relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
-                                    <i data-lucide="user" class="h-5 w-5 text-gray-400"></i>
-                                </div>
-                                <input
-                                    v-model="username"
-                                    type="text"
-                                    required
-                                    placeholder="Enter your username"
-                                    class="w-full pl-10 pr-4 py-3 bg-transparent text-white placeholder-gray-500 outline-none relative z-10"
-                                    :disabled="isLoading"
-                                >
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Password Field -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">
-                            Password
-                        </label>
-                        <div class="input-glass">
-                            <div class="input-glass__refract"></div>
-                            <div class="input-glass__tint"></div>
-                            <div class="input-glass__content relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
-                                    <i data-lucide="lock" class="h-5 w-5 text-gray-400"></i>
-                                </div>
-                                <input
-                                    v-model="password"
-                                    :type="showPassword ? 'text' : 'password'"
-                                    required
-                                    placeholder="Enter your password"
-                                    class="w-full pl-10 pr-12 py-3 bg-transparent text-white placeholder-gray-500 outline-none relative z-10"
-                                    :disabled="isLoading"
-                                >
-                                <button
-                                    type="button"
-                                    @click="showPassword = !showPassword"
-                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-200 z-10"
-                                >
-                                    <i :data-lucide="showPassword ? 'eye-off' : 'eye'" class="h-5 w-5"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Login Button: Liquid Glass -->
-                    <button
-                        type="submit"
-                        :disabled="isLoading || !isValid"
-                        class="glass-btn w-full text-white"
-                    >
-                        <div class="glass-btn__refract"></div>
-                        <div class="glass-btn__tint"></div>
-                        <div class="glass-btn__specular"></div>
-                        <div class="glass-btn__content py-3 px-4 flex items-center justify-center font-semibold relative z-10">
-                            <i v-if="isLoading" data-lucide="loader-2" class="h-5 w-5 mr-2 animate-spin"></i>
-                            <i v-else data-lucide="log-in" class="h-5 w-5 mr-2"></i>
-                            {{ isLoading ? 'Signing in...' : 'Sign In' }}
-                        </div>
-                    </button>
-                </form>
-                
-                <!-- Footer -->
-                <div class="mt-6 text-center text-sm text-gray-500">
-                    <p>Secure connection established</p>
-                </div>
+
+        <!-- Login Card -->
+        <div class="glass-card p-7 sm:p-9" ref="loginCard">
+            <div class="text-center mb-7">
+                <h2 class="text-xl font-semibold text-white mb-1">Welcome back</h2>
+                <p class="text-slate-400 text-sm">Sign in to access your dashboard</p>
             </div>
-        </div>
-        
-        <!-- Decorative Elements -->
-        <div class="fixed top-0 left-0 w-full h-full pointer-events-none -z-10 overflow-hidden">
-            <div class="absolute top-20 left-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl"></div>
-            <div class="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
+
+            <!-- Alert -->
+            <transition name="fade">
+                <div v-if="error" :class="['alert mb-6', errorClass]">
+                    <i :data-lucide="errorType === 'success' ? 'check-circle' : errorType === 'info' ? 'info' : 'alert-circle'" class="h-5 w-5 flex-shrink-0"></i>
+                    <span>{{ error }}</span>
+                </div>
+            </transition>
+
+            <form @submit.prevent="handleLogin" class="space-y-5">
+                <!-- Username -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Username</label>
+                    <div class="input-field">
+                        <i data-lucide="user" class="input-icon h-5 w-5"></i>
+                        <input
+                            v-model="username"
+                            type="text"
+                            required
+                            placeholder="Enter your username"
+                            :disabled="isLoading"
+                            autocomplete="username"
+                        >
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Password</label>
+                    <div class="input-field">
+                        <i data-lucide="lock" class="input-icon h-5 w-5"></i>
+                        <input
+                            v-model="password"
+                            :type="showPassword ? 'text' : 'password'"
+                            required
+                            placeholder="Enter your password"
+                            :disabled="isLoading"
+                            autocomplete="current-password"
+                        >
+                        <button type="button" @click="showPassword = !showPassword" class="toggle-password">
+                            <i :data-lucide="showPassword ? 'eye-off' : 'eye'" class="h-5 w-5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <button type="submit" :disabled="isLoading || !isValid" class="btn-primary mt-2">
+                    <i v-if="isLoading" data-lucide="loader-2" class="h-5 w-5 mr-2 animate-spin"></i>
+                    <i v-else data-lucide="log-in" class="h-5 w-5 mr-2"></i>
+                    {{ isLoading ? 'Signing in...' : 'Sign In' }}
+                </button>
+            </form>
+
+            <div class="mt-6 text-center text-xs text-slate-500">
+                Secure connection established
+            </div>
         </div>
     </div>
 
@@ -312,33 +336,31 @@
                     errorType: null
                 }
             },
-            
+
             computed: {
                 isValid() {
                     return this.username.trim().length > 0 && this.password.length > 0;
                 },
                 errorClass() {
-                    return {
-                        'error': 'bg-red-900/30 border border-red-500/50 text-red-200',
-                        'success': 'bg-green-900/30 border border-green-500/50 text-green-200',
-                        'info': 'bg-blue-900/30 border border-blue-500/50 text-blue-200'
-                    }[this.errorType] || 'bg-red-900/30 border border-red-500/50 text-red-200';
+                    const map = {
+                        error: 'alert-error',
+                        success: 'alert-success',
+                        info: 'alert-info'
+                    };
+                    return map[this.errorType] || map.error;
                 }
             },
-            
+
             mounted() {
                 lucide.createIcons();
                 this.redirectIfSessionIsValid();
             },
-            
+
             methods: {
                 async redirectIfSessionIsValid() {
                     try {
-                        const response = await fetch('/auth/session', {
-                            credentials: 'include'
-                        });
+                        const response = await fetch('/auth/session', { credentials: 'include' });
                         const data = await response.json();
-
                         if (data.authenticated) {
                             window.location.href = '/dashboard';
                         }
@@ -349,30 +371,26 @@
 
                 async handleLogin() {
                     if (!this.isValid || this.isLoading) return;
-                    
+
                     this.isLoading = true;
                     this.error = null;
-                    
+
                     try {
                         const response = await fetch('/auth/login', {
                             method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
+                            headers: { 'Content-Type': 'application/json' },
                             credentials: 'include',
                             body: JSON.stringify({
                                 username: this.username.trim(),
                                 password: this.password
                             })
                         });
-                        
+
                         if (response.ok) {
-                            const data = await response.json();
-                            
                             this.error = 'Login successful! Redirecting...';
                             this.errorType = 'success';
                             this.$nextTick(() => lucide.createIcons());
-                            
+
                             setTimeout(() => {
                                 window.location.href = '/dashboard';
                             }, 500);
@@ -394,11 +412,15 @@
                         this.$nextTick(() => lucide.createIcons());
                     }
                 },
-                
+
                 shakeForm() {
-                    const card = document.querySelector('.glass');
-                    card.classList.add('shake');
-                    setTimeout(() => card.classList.remove('shake'), 500);
+                    const card = this.$refs.loginCard;
+                    if (card) {
+                        card.classList.remove('shake');
+                        void card.offsetWidth;
+                        card.classList.add('shake');
+                        setTimeout(() => card.classList.remove('shake'), 500);
+                    }
                 }
             }
         }).mount('#app');
